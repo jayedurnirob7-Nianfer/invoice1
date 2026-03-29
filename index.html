@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Northern Logistics — Invoice Generator</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
 :root{--ink:#1a1a2e;--purple:#2d1b69;--red:#d0021b;--gold:#c9a84c;--silver:#8892a4;--bg:#f0ede6;--card:#fff;--border:#ddd8cc;--row-hover:#f9f7f3;--panel-bg:#1e1240;}
 *{box-sizing:border-box;margin:0;padding:0;}
@@ -70,6 +72,14 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 .empty-state .ic{font-size:34px;margin-bottom:7px;}
 #toast{position:fixed;bottom:18px;right:18px;background:#1a1a2e;color:#fff;padding:8px 13px;border-radius:6px;font-size:10.5px;font-weight:500;opacity:0;pointer-events:none;transition:opacity .3s;z-index:9999;max-width:300px;}
 #toast.show{opacity:1;}
+/* PDF overlay */
+#pdf-overlay{display:none;position:fixed;inset:0;background:rgba(10,5,30,.88);z-index:9000;align-items:center;justify-content:center;flex-direction:column;gap:14px;}
+#pdf-overlay.show{display:flex;}
+#pdf-overlay p{color:#fff;font-size:13px;font-weight:600;font-family:'Plus Jakarta Sans',sans-serif;}
+#pdf-overlay small{color:rgba(255,255,255,.45);font-size:10px;font-family:'Plus Jakarta Sans',sans-serif;}
+.pdf-spinner{width:42px;height:42px;border:3px solid rgba(201,168,76,.25);border-top-color:#c9a84c;border-radius:50%;animation:spin .75s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+/* Modal */
 #inv-modal{display:none;position:fixed;inset:0;background:rgba(10,5,30,.83);z-index:500;align-items:flex-start;justify-content:center;padding:10px;gap:10px;overflow-y:auto;}
 #inv-modal.open{display:flex;}
 #dpanel{background:var(--panel-bg);border-radius:10px;width:240px;flex-shrink:0;max-height:96vh;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:9px;align-self:flex-start;position:sticky;top:0;}
@@ -127,7 +137,6 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
   background:#fff;width:794px;min-height:1123px;display:flex;flex-direction:column;
   margin:0 auto;color:#1a1a1a;position:relative;overflow:hidden;
   box-shadow:0 4px 28px rgba(0,0,0,.18);
-  -webkit-print-color-adjust:exact;print-color-adjust:exact;color-adjust:exact;
   --pad-h:32px;--pad-v:28px;
   --header-top:0px;--header-gap:14px;
   --titlebar-my:10px;--meta-mb:12px;
@@ -141,30 +150,16 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 #inv-paper.edit-mode [contenteditable=true]{outline:none!important;border-bottom:1.5px dashed #c9a84c!important;background:rgba(201,168,76,.07);border-radius:2px;cursor:text;min-width:18px;display:inline-block;}
 #inv-paper.edit-mode [contenteditable=true]:focus{background:rgba(201,168,76,.22)!important;}
 #inv-paper.edit-mode [contenteditable=true]:empty::before{content:attr(data-ph);color:#ccc;font-style:italic;pointer-events:none;}
-#inv-bg{position:absolute;inset:0;z-index:0;background-size:cover;background-position:50% 50%;background-repeat:no-repeat;pointer-events:none;opacity:.15;display:none;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+#inv-bg{position:absolute;inset:0;z-index:0;background-size:cover;background-position:50% 50%;background-repeat:no-repeat;pointer-events:none;opacity:.15;display:none;}
 #inv-paper>*:not(#inv-bg){position:relative;z-index:1;}
 .inv-hdr{display:flex;justify-content:space-between;align-items:flex-start;margin-top:var(--header-top);margin-bottom:var(--header-gap);}
 .inv-logo-area{display:flex;align-items:center;gap:9px;}
-.inv-logo-icon{width:50px;height:50px;border-radius:50%;background:#d0021b;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:18px;font-style:italic;flex-shrink:0;overflow:hidden;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+.inv-logo-icon{width:50px;height:50px;border-radius:50%;background:#d0021b;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:18px;font-style:italic;flex-shrink:0;overflow:hidden;}
 .inv-logo-icon img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
 .inv-coname{font-size:19px;font-weight:900;color:#1a1a1a;letter-spacing:1px;}
 .inv-cosub{font-size:var(--sz-cosub);letter-spacing:4px;color:#888;display:block;font-weight:400;}
 .inv-contact-block{text-align:right;font-size:var(--sz-contact);line-height:1.8;}
-/* FIX: INVOICE titlebar — force background to print */
-.inv-titlebar{
-  background-color:#2d1b69 !important;
-  color:#fff !important;
-  text-align:center;
-  font-size:var(--sz-titlebar);
-  font-weight:700;
-  letter-spacing:6px;
-  padding:8px;
-  margin:var(--titlebar-my) 0;
-  border-radius:2px;
-  -webkit-print-color-adjust:exact !important;
-  print-color-adjust:exact !important;
-  color-adjust:exact !important;
-}
+.inv-titlebar{background-color:#2d1b69;color:#fff;text-align:center;font-size:var(--sz-titlebar);font-weight:700;letter-spacing:6px;padding:8px;margin:var(--titlebar-my) 0;border-radius:2px;}
 .inv-meta{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:var(--meta-mb);flex-wrap:wrap;gap:10px;}
 .inv-meta-lhd{font-size:12px;font-weight:700;border-bottom:2px solid #1a1a1a;padding-bottom:2px;margin-bottom:7px;}
 .inv-field{display:flex;gap:4px;font-size:var(--sz-field);align-items:baseline;}
@@ -176,66 +171,39 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 #mf-name{margin-top:var(--mt-name);}#mf-addr{margin-top:var(--mt-addr);}#mf-mob{margin-top:var(--mt-mob);}
 #mf-date{margin-top:var(--mt-date);}#mf-page{margin-top:var(--mt-page);}
 #mf-smark{margin-top:var(--mt-smark);}#mf-sno{margin-top:var(--mt-sno);}#mf-tno{margin-top:var(--mt-tno);}
-/* FIX: Table header — force background to print */
 .inv-table{width:100%;border-collapse:collapse;margin:var(--table-my) 0;font-size:var(--sz-table);}
-.inv-table thead th{
-  background-color:#2d1b69 !important;
-  color:#fff !important;
-  padding:8px 10px;
-  font-weight:600;
-  text-align:left;
-  -webkit-print-color-adjust:exact !important;
-  print-color-adjust:exact !important;
-  color-adjust:exact !important;
-}
+.inv-table thead th{background-color:#2d1b69;color:#fff;padding:8px 10px;font-weight:600;text-align:left;}
 .inv-table thead th.tc{text-align:center;}
 .inv-table thead th.tr{text-align:right;}
 .inv-table tbody td{padding:var(--row-py) 10px;border-bottom:1px solid #eee;vertical-align:middle;}
 .inv-table tbody td.tc{text-align:center;}
 .inv-table tbody td.tr{text-align:right;font-weight:600;}
-.inv-table tbody tr:nth-child(even){background:#fafafa;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+.inv-table tbody tr:nth-child(even){background:#fafafa;}
 .inv-total-row{display:flex;justify-content:flex-end;margin-top:var(--total-mt);border-top:2px solid #1a1a1a;padding-top:8px;}
 .inv-total-box{font-size:var(--sz-total);font-weight:700;}
-.total-val{margin-left:8px;color:#d0021b;font-size:calc(var(--sz-total) + 2px);-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+.total-val{margin-left:8px;color:#d0021b;font-size:calc(var(--sz-total) + 2px);}
 .inv-spacer{flex:1;min-height:20px;}
-.inv-banking{border-top:1px solid #ddd;padding-top:11px;font-size:var(--sz-banking);line-height:1;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+.inv-banking{border-top:1px solid #ddd;padding-top:11px;font-size:var(--sz-banking);line-height:1;}
 .banking-header{font-weight:700;margin-bottom:7px;}
 .banking-sep{color:#999;margin:0 6px;}
 .banking-line{margin-bottom:5px;display:block;line-height:1.4;}
 .banking-line:last-child{margin-bottom:0;}
-.inv-footer-wrap{padding-top:var(--footer-mt);-webkit-print-color-adjust:exact;print-color-adjust:exact;}
-.inv-footer{display:flex;justify-content:space-between;align-items:center;border-top:2px solid #2d1b69;padding-top:9px;flex-wrap:wrap;gap:9px;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+.inv-footer-wrap{padding-top:var(--footer-mt);}
+.inv-footer{display:flex;justify-content:space-between;align-items:center;border-top:2px solid #2d1b69;padding-top:9px;flex-wrap:wrap;gap:9px;}
 .inv-socials{display:flex;gap:5px;}
-.sicon{width:22px;height:22px;border-radius:50%;color:#fff;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;flex-shrink:0;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+.sicon{width:22px;height:22px;border-radius:50%;color:#fff;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;flex-shrink:0;}
 .inv-footer-brand{font-size:var(--sz-footer);font-weight:900;color:#2d1b69;letter-spacing:1px;}
 .inv-footer-tag{display:block;font-size:9px;letter-spacing:3px;color:#c9a84c;font-weight:600;}
-@media print{
-  @page{size:A4 portrait;margin:0;}
-  *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;color-adjust:exact!important;}
-  html,body{width:210mm;margin:0;padding:0;background:#fff;}
-  #app{display:none!important;}
-  #toast{display:none!important;}
-  #inv-modal{display:block!important;position:static!important;background:none!important;padding:0!important;margin:0!important;overflow:visible!important;}
-  #dpanel,.edit-bar,.modal-hdr{display:none!important;}
-  .modal-inner{box-shadow:none!important;border-radius:0!important;background:none!important;width:100%!important;max-width:none!important;}
-  .modal-body{padding:0!important;max-height:none!important;overflow:visible!important;}
-  #inv-paper{width:210mm!important;height:297mm!important;min-height:297mm!important;box-shadow:none!important;border-radius:0!important;margin:0!important;padding:14mm 15mm 10mm 15mm!important;overflow:hidden!important;position:relative!important;display:flex!important;flex-direction:column!important;}
-  #inv-bg{display:block!important;}
-  #inv-paper [contenteditable]{border-bottom:none!important;background:transparent!important;}
-  /* Guarantee purple bars print */
-  .inv-titlebar{background-color:#2d1b69!important;color:#fff!important;}
-  .inv-table thead th{background-color:#2d1b69!important;color:#fff!important;}
-}
 </style>
 </head>
 <body>
+
 <div id="app">
   <aside id="sidebar">
     <div class="sidebar-logo">
       <div class="logo-circle">N</div>
       <h1>Northern Logistics<span>Invoice Generator</span></h1>
     </div>
-
     <div>
       <div class="sec-label" style="display:flex;align-items:center;">Google Sheet URL<span class="saved-badge" id="saved-badge">&#10003; Saved</span></div>
       <input type="text" class="fi" id="sheet-url" placeholder="Paste Google Sheet URL...">
@@ -248,7 +216,6 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
       <div style="height:5px;"></div>
       <div class="status-row"><span class="dot" id="sdot"></span><span id="stext">Not connected</span></div>
     </div>
-
     <div class="how-to">
       <strong>Header rows to skip</strong>
       <div class="skip-row" style="margin-top:5px;">
@@ -257,14 +224,8 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
       </div>
       <div style="margin-top:5px;font-size:8.5px;color:rgba(255,255,255,.35);">Default: 1 (skips row 1 as header). Set to 2 if your sheet has 2 header rows before data.</div>
     </div>
-
-    <div class="how-to">
-      <strong>&#10003; How to use</strong>Paste your Google Sheet URL, set how many header rows to skip, then click Load Sheet. Select rows and click Generate Invoice.
-    </div>
-
-    <div class="how-to" style="margin-top:auto;">
-      <strong>&#10023; Drag to reorder</strong>Grab &#10023; handle to reorder rows before generating.
-    </div>
+    <div class="how-to"><strong>&#10003; How to use</strong>Paste your Google Sheet URL, set how many header rows to skip, then click Load Sheet. Select rows and click Generate Invoice.</div>
+    <div class="how-to" style="margin-top:auto;"><strong>&#10023; Drag to reorder</strong>Grab &#10023; handle to reorder rows before generating.</div>
   </aside>
 
   <header id="topbar">
@@ -294,6 +255,13 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
   </main>
 </div>
 
+<!-- PDF OVERLAY -->
+<div id="pdf-overlay">
+  <div class="pdf-spinner"></div>
+  <p>Generating PDF…</p>
+  <small>Capturing invoice — this takes a few seconds</small>
+</div>
+
 <!-- INVOICE MODAL -->
 <div id="inv-modal">
   <div id="dpanel">
@@ -302,8 +270,8 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
     <div class="ds">
       <div class="dst">Show / Hide</div>
       <div class="tr-row"><span class="tl">Background</span><label class="tg"><input type="checkbox" id="tog-bg" onchange="toggleBg(this.checked)"><span class="tgs"></span></label></div>
-      <div class="tr-row"><span class="tl">Banking details</span><label class="tg"><input type="checkbox" checked onchange="toggleEl('inv-banking','block',this.checked)"><span class="tgs"></span></label></div>
-      <div class="tr-row"><span class="tl">Socials icons</span><label class="tg"><input type="checkbox" checked onchange="toggleEl('inv-socials','flex',this.checked)"><span class="tgs"></span></label></div>
+      <div class="tr-row"><span class="tl">Banking details</span><label class="tg"><input type="checkbox" id="tog-banking" checked onchange="toggleEl('inv-banking','block',this.checked)"><span class="tgs"></span></label></div>
+      <div class="tr-row"><span class="tl">Socials icons</span><label class="tg"><input type="checkbox" id="tog-socials" checked onchange="toggleEl('inv-socials','flex',this.checked)"><span class="tgs"></span></label></div>
     </div>
 
     <div class="ds">
@@ -332,48 +300,48 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 
     <div class="ds">
       <div class="dst">Font Sizes</div>
-      <div class="dr"><span class="dl">Sub-title</span><div class="dc"><input type="number" class="si" value="10" min="7" max="20" oninput="setSZ('--sz-cosub',this.value)"><span class="su">px</span></div></div>
-      <div class="dr"><span class="dl">Contact</span><div class="dc"><input type="number" class="si" value="11" min="7" max="18" oninput="setSZ('--sz-contact',this.value)"><span class="su">px</span></div></div>
-      <div class="dr"><span class="dl">Title bar</span><div class="dc"><input type="number" class="si" value="19" min="10" max="36" oninput="setSZ('--sz-titlebar',this.value)"><span class="su">px</span></div></div>
-      <div class="dr"><span class="dl">Fields</span><div class="dc"><input type="number" class="si" value="11" min="7" max="18" oninput="setSZ('--sz-field',this.value)"><span class="su">px</span></div></div>
-      <div class="dr"><span class="dl">Table rows</span><div class="dc"><input type="number" class="si" value="11" min="7" max="16" oninput="setSZ('--sz-table',this.value)"><span class="su">px</span></div></div>
-      <div class="dr"><span class="dl">Total</span><div class="dc"><input type="number" class="si" value="13" min="8" max="22" oninput="setSZ('--sz-total',this.value)"><span class="su">px</span></div></div>
-      <div class="dr"><span class="dl">Banking</span><div class="dc"><input type="number" class="si" value="11" min="7" max="16" oninput="setSZ('--sz-banking',this.value)"><span class="su">px</span></div></div>
-      <div class="dr"><span class="dl">Footer</span><div class="dc"><input type="number" class="si" value="11" min="7" max="16" oninput="setSZ('--sz-footer',this.value)"><span class="su">px</span></div></div>
+      <div class="dr"><span class="dl">Sub-title</span><div class="dc"><input type="number" class="si" id="sz-cosub" value="10" min="7" max="20" oninput="setSZ('--sz-cosub',this.value)"><span class="su">px</span></div></div>
+      <div class="dr"><span class="dl">Contact</span><div class="dc"><input type="number" class="si" id="sz-contact" value="11" min="7" max="18" oninput="setSZ('--sz-contact',this.value)"><span class="su">px</span></div></div>
+      <div class="dr"><span class="dl">Title bar</span><div class="dc"><input type="number" class="si" id="sz-titlebar" value="19" min="10" max="36" oninput="setSZ('--sz-titlebar',this.value)"><span class="su">px</span></div></div>
+      <div class="dr"><span class="dl">Fields</span><div class="dc"><input type="number" class="si" id="sz-field" value="11" min="7" max="18" oninput="setSZ('--sz-field',this.value)"><span class="su">px</span></div></div>
+      <div class="dr"><span class="dl">Table rows</span><div class="dc"><input type="number" class="si" id="sz-table" value="11" min="7" max="16" oninput="setSZ('--sz-table',this.value)"><span class="su">px</span></div></div>
+      <div class="dr"><span class="dl">Total</span><div class="dc"><input type="number" class="si" id="sz-total" value="13" min="8" max="22" oninput="setSZ('--sz-total',this.value)"><span class="su">px</span></div></div>
+      <div class="dr"><span class="dl">Banking</span><div class="dc"><input type="number" class="si" id="sz-banking" value="11" min="7" max="16" oninput="setSZ('--sz-banking',this.value)"><span class="su">px</span></div></div>
+      <div class="dr"><span class="dl">Footer</span><div class="dc"><input type="number" class="si" id="sz-footer" value="11" min="7" max="16" oninput="setSZ('--sz-footer',this.value)"><span class="su">px</span></div></div>
     </div>
 
     <div class="ds">
       <div class="dst">Paper Padding</div>
-      <div class="dr"><span class="dl">Horizontal</span><div class="dc"><input type="number" class="si" value="32" min="0" max="80" oninput="setSP('--pad-h',this.value,'px')"><span class="su">px</span></div></div>
-      <div class="dr"><span class="dl">Vertical</span><div class="dc"><input type="number" class="si" value="28" min="0" max="80" oninput="setSP('--pad-v',this.value,'px')"><span class="su">px</span></div></div>
+      <div class="dr"><span class="dl">Horizontal</span><div class="dc"><input type="number" class="si" id="sp-pad-h" value="32" min="0" max="80" oninput="setSP('--pad-h',this.value,'px')"><span class="su">px</span></div></div>
+      <div class="dr"><span class="dl">Vertical</span><div class="dc"><input type="number" class="si" id="sp-pad-v" value="28" min="0" max="80" oninput="setSP('--pad-v',this.value,'px')"><span class="su">px</span></div></div>
     </div>
 
     <div class="ds">
       <div class="dst">Section Spacing</div>
-      <div class="dr"><span class="dl">Header top</span><div class="dc"><input type="number" class="si" value="0" min="-50" max="80" oninput="setSP('--header-top',this.value,'px')"><span class="su">px</span></div></div>
-      <div class="dr"><span class="dl">Header bottom</span><div class="dc"><input type="number" class="si" value="14" min="-50" max="80" oninput="setSP('--header-gap',this.value,'px')"><span class="su">px</span></div></div>
-      <div class="dr"><span class="dl">Title bar margin</span><div class="dc"><input type="number" class="si" value="10" min="-30" max="60" oninput="setSP('--titlebar-my',this.value,'px')"><span class="su">px</span></div></div>
-      <div class="dr"><span class="dl">Meta bottom</span><div class="dc"><input type="number" class="si" value="12" min="-30" max="60" oninput="setSP('--meta-mb',this.value,'px')"><span class="su">px</span></div></div>
-      <div class="dr"><span class="dl">Table margin</span><div class="dc"><input type="number" class="si" value="10" min="-30" max="60" oninput="setSP('--table-my',this.value,'px')"><span class="su">px</span></div></div>
-      <div class="dr"><span class="dl">Row height</span><div class="dc"><input type="number" class="si" value="7" min="2" max="30" oninput="setSP('--row-py',this.value,'px')"><span class="su">px</span></div></div>
-      <div class="dr"><span class="dl">Total top</span><div class="dc"><input type="number" class="si" value="6" min="-20" max="40" oninput="setSP('--total-mt',this.value,'px')"><span class="su">px</span></div></div>
-      <div class="dr"><span class="dl">Footer top</span><div class="dc"><input type="number" class="si" value="14" min="-20" max="80" oninput="setSP('--footer-mt',this.value,'px')"><span class="su">px</span></div></div>
+      <div class="dr"><span class="dl">Header top</span><div class="dc"><input type="number" class="si" id="sp-header-top" value="0" min="-50" max="80" oninput="setSP('--header-top',this.value,'px')"><span class="su">px</span></div></div>
+      <div class="dr"><span class="dl">Header bottom</span><div class="dc"><input type="number" class="si" id="sp-header-gap" value="14" min="-50" max="80" oninput="setSP('--header-gap',this.value,'px')"><span class="su">px</span></div></div>
+      <div class="dr"><span class="dl">Title bar margin</span><div class="dc"><input type="number" class="si" id="sp-titlebar-my" value="10" min="-30" max="60" oninput="setSP('--titlebar-my',this.value,'px')"><span class="su">px</span></div></div>
+      <div class="dr"><span class="dl">Meta bottom</span><div class="dc"><input type="number" class="si" id="sp-meta-mb" value="12" min="-30" max="60" oninput="setSP('--meta-mb',this.value,'px')"><span class="su">px</span></div></div>
+      <div class="dr"><span class="dl">Table margin</span><div class="dc"><input type="number" class="si" id="sp-table-my" value="10" min="-30" max="60" oninput="setSP('--table-my',this.value,'px')"><span class="su">px</span></div></div>
+      <div class="dr"><span class="dl">Row height</span><div class="dc"><input type="number" class="si" id="sp-row-py" value="7" min="2" max="30" oninput="setSP('--row-py',this.value,'px')"><span class="su">px</span></div></div>
+      <div class="dr"><span class="dl">Total top</span><div class="dc"><input type="number" class="si" id="sp-total-mt" value="6" min="-20" max="40" oninput="setSP('--total-mt',this.value,'px')"><span class="su">px</span></div></div>
+      <div class="dr"><span class="dl">Footer top</span><div class="dc"><input type="number" class="si" id="sp-footer-mt" value="14" min="-20" max="80" oninput="setSP('--footer-mt',this.value,'px')"><span class="su">px</span></div></div>
     </div>
 
     <div class="ds">
       <div class="dst">Bill To — Field Gap</div>
-      <div class="dr"><span class="dl">Name</span><div class="dc"><input type="number" class="si" value="0" min="-20" max="50" oninput="setSP('--mt-name',this.value,'px')"><span class="su">px</span></div></div>
-      <div class="dr"><span class="dl">Address</span><div class="dc"><input type="number" class="si" value="0" min="-20" max="50" oninput="setSP('--mt-addr',this.value,'px')"><span class="su">px</span></div></div>
-      <div class="dr"><span class="dl">Mobile</span><div class="dc"><input type="number" class="si" value="0" min="-20" max="50" oninput="setSP('--mt-mob',this.value,'px')"><span class="su">px</span></div></div>
+      <div class="dr"><span class="dl">Name</span><div class="dc"><input type="number" class="si" id="sp-mt-name" value="0" min="-20" max="50" oninput="setSP('--mt-name',this.value,'px')"><span class="su">px</span></div></div>
+      <div class="dr"><span class="dl">Address</span><div class="dc"><input type="number" class="si" id="sp-mt-addr" value="0" min="-20" max="50" oninput="setSP('--mt-addr',this.value,'px')"><span class="su">px</span></div></div>
+      <div class="dr"><span class="dl">Mobile</span><div class="dc"><input type="number" class="si" id="sp-mt-mob" value="0" min="-20" max="50" oninput="setSP('--mt-mob',this.value,'px')"><span class="su">px</span></div></div>
     </div>
 
     <div class="ds">
       <div class="dst">Right Side — Field Gap</div>
-      <div class="dr"><span class="dl">Date</span><div class="dc"><input type="number" class="si" value="0" min="-20" max="50" oninput="setSP('--mt-date',this.value,'px')"><span class="su">px</span></div></div>
-      <div class="dr"><span class="dl">Page</span><div class="dc"><input type="number" class="si" value="0" min="-20" max="50" oninput="setSP('--mt-page',this.value,'px')"><span class="su">px</span></div></div>
-      <div class="dr"><span class="dl">Ship Mark</span><div class="dc"><input type="number" class="si" value="0" min="-20" max="50" oninput="setSP('--mt-smark',this.value,'px')"><span class="su">px</span></div></div>
-      <div class="dr"><span class="dl">Ship No</span><div class="dc"><input type="number" class="si" value="0" min="-20" max="50" oninput="setSP('--mt-sno',this.value,'px')"><span class="su">px</span></div></div>
-      <div class="dr"><span class="dl">Track No</span><div class="dc"><input type="number" class="si" value="0" min="-20" max="50" oninput="setSP('--mt-tno',this.value,'px')"><span class="su">px</span></div></div>
+      <div class="dr"><span class="dl">Date</span><div class="dc"><input type="number" class="si" id="sp-mt-date" value="0" min="-20" max="50" oninput="setSP('--mt-date',this.value,'px')"><span class="su">px</span></div></div>
+      <div class="dr"><span class="dl">Page</span><div class="dc"><input type="number" class="si" id="sp-mt-page" value="0" min="-20" max="50" oninput="setSP('--mt-page',this.value,'px')"><span class="su">px</span></div></div>
+      <div class="dr"><span class="dl">Ship Mark</span><div class="dc"><input type="number" class="si" id="sp-mt-smark" value="0" min="-20" max="50" oninput="setSP('--mt-smark',this.value,'px')"><span class="su">px</span></div></div>
+      <div class="dr"><span class="dl">Ship No</span><div class="dc"><input type="number" class="si" id="sp-mt-sno" value="0" min="-20" max="50" oninput="setSP('--mt-sno',this.value,'px')"><span class="su">px</span></div></div>
+      <div class="dr"><span class="dl">Track No</span><div class="dc"><input type="number" class="si" id="sp-mt-tno" value="0" min="-20" max="50" oninput="setSP('--mt-tno',this.value,'px')"><span class="su">px</span></div></div>
     </div>
 
     <button class="btn-gold" onclick="resetSpacing()">&#8617; Reset Spacing</button>
@@ -383,7 +351,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
     <div class="modal-hdr">
       <h3>Invoice Preview — A4</h3>
       <div class="acts">
-        <button class="btn-gold" style="width:auto;padding:5px 13px;font-size:9.5px;" onclick="doPrint()">&#128438; Print / Save PDF</button>
+        <button class="btn-gold" id="btn-pdf" style="width:auto;padding:5px 14px;font-size:9.5px;" onclick="downloadPDF()">&#11015; Download PDF</button>
         <button class="btn-close" onclick="closeModal()">&#10005;</button>
       </div>
     </div>
@@ -454,17 +422,14 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
         <div class="inv-footer-wrap">
           <div class="inv-footer">
             <div class="inv-socials" id="inv-socials">
-              <!-- Facebook -->
               <div class="sicon" style="background:#3b5998;font-size:11px;font-weight:900;">f</div>
-              <!-- Instagram — camera SVG icon -->
-              <div class="sicon" style="background:radial-gradient(circle at 30% 107%,#fdf497 0%,#fdf497 5%,#fd5949 45%,#d6249f 60%,#285aeb 90%);-webkit-print-color-adjust:exact;print-color-adjust:exact;">
+              <div class="sicon" style="background:radial-gradient(circle at 30% 107%,#fdf497 0%,#fdf497 5%,#fd5949 45%,#d6249f 60%,#285aeb 90%);">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
                   <circle cx="12" cy="12" r="4"/>
                   <circle cx="17.5" cy="6.5" r="1" fill="#fff" stroke="none"/>
                 </svg>
               </div>
-              <!-- LinkedIn -->
               <div class="sicon" style="background:#0077b5;font-size:8px;font-weight:900;">in</div>
             </div>
             <div class="inv-footer-brand">
@@ -479,10 +444,12 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 </div>
 
 <div id="toast"></div>
+
 <script>
 (function(){
 'use strict';
 
+/* ── ALIASES ─────────────────────────────────────────────── */
 var ALIASES={
   Name:['name','clientname','customername','client','customer','fullname','buyername','billto','billname'],
   Address:['address','addr','location','area','district','city'],
@@ -498,70 +465,121 @@ var ALIASES={
   Date:['date','dt','shipdate','invoicedate','orderdate','invoicedt','entrydate']
 };
 
-var rows=[],selRows=[],hdrs=[],colMap={};
-var editMode=false,dragSrc=null;
-var LS_URL='nl3_url',LS_BG='nl3_bg',LS_BGOP='nl3_bgop',LS_BGSZ='nl3_bgsz',LS_SKIP='nl3_skip';
+var rows=[],selRows=[],hdrs=[],colMap={},editMode=false,dragSrc=null;
 
+/* ── localStorage KEYS ───────────────────────────────────── */
+var LS={
+  URL:'nl3_url', BG:'nl3_bg', BGOP:'nl3_bgop', BGSZ:'nl3_bgsz', SKIP:'nl3_skip',
+  LOGO:'nl3_logo', TOG_BG:'nl3_tog_bg', TOG_BANKING:'nl3_tog_bank', TOG_SOCIALS:'nl3_tog_soc',
+  DESIGN:'nl3_design'
+};
+
+/* ── DESIGN: input-id → CSS variable map ─────────────────── */
+var CSSMAP={
+  'sz-cosub':'--sz-cosub','sz-contact':'--sz-contact','sz-titlebar':'--sz-titlebar',
+  'sz-field':'--sz-field','sz-table':'--sz-table','sz-total':'--sz-total',
+  'sz-banking':'--sz-banking','sz-footer':'--sz-footer',
+  'sp-pad-h':'--pad-h','sp-pad-v':'--pad-v',
+  'sp-header-top':'--header-top','sp-header-gap':'--header-gap',
+  'sp-titlebar-my':'--titlebar-my','sp-meta-mb':'--meta-mb',
+  'sp-table-my':'--table-my','sp-row-py':'--row-py',
+  'sp-total-mt':'--total-mt','sp-footer-mt':'--footer-mt',
+  'sp-mt-name':'--mt-name','sp-mt-addr':'--mt-addr','sp-mt-mob':'--mt-mob',
+  'sp-mt-date':'--mt-date','sp-mt-page':'--mt-page',
+  'sp-mt-smark':'--mt-smark','sp-mt-sno':'--mt-sno','sp-mt-tno':'--mt-tno'
+};
+
+var DEFAULTS={
+  'sz-cosub':'10','sz-contact':'11','sz-titlebar':'19','sz-field':'11',
+  'sz-table':'11','sz-total':'13','sz-banking':'11','sz-footer':'11',
+  'sp-pad-h':'32','sp-pad-v':'28',
+  'sp-header-top':'0','sp-header-gap':'14','sp-titlebar-my':'10',
+  'sp-meta-mb':'12','sp-table-my':'10','sp-row-py':'7','sp-total-mt':'6','sp-footer-mt':'14',
+  'sp-mt-name':'0','sp-mt-addr':'0','sp-mt-mob':'0',
+  'sp-mt-date':'0','sp-mt-page':'0','sp-mt-smark':'0','sp-mt-sno':'0','sp-mt-tno':'0'
+};
+
+/* ── HELPERS ─────────────────────────────────────────────── */
 function g(id){return document.getElementById(id);}
 function esc(s){if(!s&&s!==0)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
-var _tt;
-function toast(m,dur){var t=g('toast');t.textContent=m;t.classList.add('show');clearTimeout(_tt);_tt=setTimeout(function(){t.classList.remove('show');},dur||3500);}
-function setStatus(cls,msg){g('sdot').className='dot'+(cls?' '+cls:'');g('stext').textContent=msg;}
+var _tt; function toast(m,d){var t=g('toast');t.textContent=m;t.classList.add('show');clearTimeout(_tt);_tt=setTimeout(function(){t.classList.remove('show');},d||3500);}
+function setStatus(c,m){g('sdot').className='dot'+(c?' '+c:'');g('stext').textContent=m;}
 function setProgress(p){g('prog-fill').style.width=p+'%';}
 function lsGet(k){try{return localStorage.getItem(k);}catch(e){return null;}}
 function lsSet(k,v){try{localStorage.setItem(k,v);}catch(e){}}
 function lsRm(k){try{localStorage.removeItem(k);}catch(e){}}
 function setText(id,v){var el=g(id);if(el)el.textContent=v||'';}
 function sk(s){return String(s).toLowerCase().replace(/[\s_\-\.\/\(\)]/g,'');}
+function getSkipCount(){var v=parseInt(g('skip-rows').value);return isNaN(v)||v<0?1:v;}
 
-function getSkipCount(){
-  var v=parseInt(g('skip-rows').value);
-  return isNaN(v)||v<0?1:v;
+/* ── DESIGN SAVE/LOAD ────────────────────────────────────── */
+function saveDesign(){
+  var d={};
+  Object.keys(DEFAULTS).forEach(function(id){var el=g(id);if(el)d[id]=el.value;});
+  lsSet(LS.DESIGN,JSON.stringify(d));
+}
+function loadDesign(){
+  var saved={};try{saved=JSON.parse(lsGet(LS.DESIGN)||'{}');}catch(e){}
+  var merged=Object.assign({},DEFAULTS,saved);
+  var paper=g('inv-paper');
+  Object.keys(merged).forEach(function(id){
+    var val=merged[id];
+    var el=g(id);if(el)el.value=val;
+    var cv=CSSMAP[id];if(cv&&paper)paper.style.setProperty(cv,parseFloat(val)+'px');
+  });
 }
 
+/* ── BOOT ────────────────────────────────────────────────── */
 function boot(){
+  loadDesign();
+
+  /* toggles */
+  var tBank=lsGet(LS.TOG_BANKING),tSoc=lsGet(LS.TOG_SOCIALS),tBg=lsGet(LS.TOG_BG);
+  if(tBg!==null){var cb=g('tog-bg');if(cb)cb.checked=(tBg==='1');}
+  if(tBank!==null){var cb=g('tog-banking');if(cb){cb.checked=(tBank==='1');toggleEl('inv-banking','block',cb.checked);}}
+  if(tSoc!==null){var cb=g('tog-socials');if(cb){cb.checked=(tSoc==='1');toggleEl('inv-socials','flex',cb.checked);}}
+
+  /* bg opacity/size */
+  var op=lsGet(LS.BGOP)||'15',sz=lsGet(LS.BGSZ)||'cover';
+  g('bg-op').value=op;g('bg-op-v').value=op;
+  var szEl=g('bg-sz');if(szEl)szEl.value=sz;
+
+  /* bg image */
+  var savedBg=lsGet(LS.BG);if(savedBg)applyBgImg(savedBg,true);
+  /* logo */
+  var savedLogo=lsGet(LS.LOGO);if(savedLogo)applyLogoImg(savedLogo,true);
+  /* sheet URL */
+  var savedSkip=lsGet(LS.SKIP);if(savedSkip!==null)g('skip-rows').value=savedSkip;
+  var savedUrl=lsGet(LS.URL);
+  if(savedUrl){g('sheet-url').value=savedUrl;g('saved-badge').classList.add('show');setStatus('y','Auto-loading...');loadSheetSilent(savedUrl);}
+
   g('btn-load').addEventListener('click',loadSheet);
-  g('btn-clear-url').addEventListener('click',function(){
-    lsRm(LS_URL);g('sheet-url').value='';g('saved-badge').classList.remove('show');
-    rows=[];renderTable();toast('URL cleared');
-  });
+  g('btn-clear-url').addEventListener('click',function(){lsRm(LS.URL);g('sheet-url').value='';g('saved-badge').classList.remove('show');rows=[];renderTable();toast('URL cleared');});
   g('btn-gen').addEventListener('click',genInvoice);
   g('check-all').addEventListener('change',function(){toggleAll(this.checked);});
   g('sheet-url').addEventListener('keydown',function(e){if(e.key==='Enter')loadSheet();});
-  g('skip-rows').addEventListener('change',function(){lsSet(LS_SKIP,this.value);});
-  g('bg-file-in').addEventListener('change',function(){
-    var f=this.files[0];if(!f)return;
-    var r=new FileReader();r.onload=function(e){applyBgImg(e.target.result);};r.readAsDataURL(f);this.value='';
-  });
-  g('logo-file-in').addEventListener('change',function(){
-    var f=this.files[0];if(!f)return;
-    var r=new FileReader();r.onload=function(e){applyLogoImg(e.target.result);};r.readAsDataURL(f);this.value='';
-  });
+  g('skip-rows').addEventListener('change',function(){lsSet(LS.SKIP,this.value);});
+  g('bg-file-in').addEventListener('change',function(){var f=this.files[0];if(!f)return;var r=new FileReader();r.onload=function(e){applyBgImg(e.target.result);};r.readAsDataURL(f);this.value='';});
+  g('logo-file-in').addEventListener('change',function(){var f=this.files[0];if(!f)return;var r=new FileReader();r.onload=function(e){applyLogoImg(e.target.result);};r.readAsDataURL(f);this.value='';});
   var dz=document.querySelector('.bg-drop');
   if(dz){
     dz.addEventListener('dragover',function(e){e.preventDefault();dz.style.borderColor='var(--gold)';});
     dz.addEventListener('dragleave',function(){dz.style.borderColor='';});
-    dz.addEventListener('drop',function(e){
-      e.preventDefault();dz.style.borderColor='';
-      var f=e.dataTransfer.files[0];
-      if(f&&f.type.startsWith('image/')){var r=new FileReader();r.onload=function(ev){applyBgImg(ev.target.result);};r.readAsDataURL(f);}
-    });
+    dz.addEventListener('drop',function(e){e.preventDefault();dz.style.borderColor='';var f=e.dataTransfer.files[0];if(f&&f.type.startsWith('image/')){var r=new FileReader();r.onload=function(ev){applyBgImg(ev.target.result);};r.readAsDataURL(f);}});
   }
-  var savedSkip=lsGet(LS_SKIP);if(savedSkip!==null)g('skip-rows').value=savedSkip;
-  var savedUrl=lsGet(LS_URL);
-  if(savedUrl){g('sheet-url').value=savedUrl;g('saved-badge').classList.add('show');setStatus('y','Auto-loading...');loadSheetSilent(savedUrl);}
-  var savedBg=lsGet(LS_BG);
-  if(savedBg){var op=lsGet(LS_BGOP)||'15',sz=lsGet(LS_BGSZ)||'cover';g('bg-op').value=op;g('bg-op-v').value=op;g('bg-sz').value=sz;applyBgImg(savedBg,true);}
 }
-
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
 
-function applyLogoImg(src){
-  var icon=g('inv-logo-icon');icon.innerHTML='<img src="'+src+'" alt="logo">';
-  var prev=g('logo-prev');prev.src=src;prev.style.display='block';
+/* ── LOGO ────────────────────────────────────────────────── */
+function applyLogoImg(src,silent){
+  g('inv-logo-icon').innerHTML='<img src="'+src+'" alt="logo">';
+  var p=g('logo-prev');p.src=src;p.style.display='block';
+  if(!silent&&src.length<5000000)lsSet(LS.LOGO,src);
+  if(!silent)toast('Logo applied');
 }
-window.removeLogo=function(){g('inv-logo-icon').innerHTML='N';var prev=g('logo-prev');prev.src='';prev.style.display='none';};
+window.removeLogo=function(){g('inv-logo-icon').innerHTML='N';var p=g('logo-prev');p.src='';p.style.display='none';lsRm(LS.LOGO);toast('Logo removed');};
 
+/* ── EDIT MODE ───────────────────────────────────────────── */
 window.toggleEdit=function(){
   editMode=!editMode;
   var paper=g('inv-paper'),btn=g('btn-edit'),bar=g('edit-bar-txt');
@@ -580,20 +598,32 @@ window.toggleEdit=function(){
   }
 };
 
-window.toggleEl=function(id,dt,show){var el=g(id);if(el)el.style.display=show?dt:'none';};
-window.toggleBg=function(show){
-  var l=g('inv-bg');if(!l)return;
-  var hasBg=l.style.backgroundImage&&l.style.backgroundImage!=='none'&&l.style.backgroundImage!=='';
-  l.style.display=(show&&hasBg)?'block':'none';
+/* ── TOGGLES ─────────────────────────────────────────────── */
+window.toggleEl=function(id,dt,show){
+  var el=g(id);if(el)el.style.display=show?dt:'none';
+  if(id==='inv-banking')lsSet(LS.TOG_BANKING,show?'1':'0');
+  if(id==='inv-socials')lsSet(LS.TOG_SOCIALS,show?'1':'0');
 };
-window.setSZ=function(v,val){g('inv-paper').style.setProperty(v,parseFloat(val)+'px');};
-window.setSP=function(v,val,u){g('inv-paper').style.setProperty(v,parseFloat(val)+u);};
-window.resetSpacing=function(){
-  var p=g('inv-paper');
-  var d={'--pad-h':'32px','--pad-v':'28px','--header-top':'0px','--header-gap':'14px','--titlebar-my':'10px','--meta-mb':'12px','--table-my':'10px','--row-py':'7px','--total-mt':'6px','--footer-mt':'14px','--mt-name':'0px','--mt-addr':'0px','--mt-mob':'0px','--mt-date':'0px','--mt-page':'0px','--mt-smark':'0px','--mt-sno':'0px','--mt-tno':'0px'};
-  Object.keys(d).forEach(function(k){p.style.setProperty(k,d[k]);});toast('Spacing reset');
+window.toggleBg=function(show){
+  lsSet(LS.TOG_BG,show?'1':'0');
+  var l=g('inv-bg');if(!l)return;
+  var has=l.style.backgroundImage&&l.style.backgroundImage!=='none'&&l.style.backgroundImage!=='';
+  l.style.display=(show&&has)?'block':'none';
 };
 
+/* ── FONT SIZES & SPACING ────────────────────────────────── */
+window.setSZ=function(cssVar,val){g('inv-paper').style.setProperty(cssVar,parseFloat(val)+'px');saveDesign();};
+window.setSP=function(cssVar,val,u){g('inv-paper').style.setProperty(cssVar,parseFloat(val)+u);saveDesign();};
+window.resetSpacing=function(){
+  var paper=g('inv-paper');
+  Object.keys(DEFAULTS).forEach(function(id){
+    var val=DEFAULTS[id];var el=g(id);if(el)el.value=val;
+    var cv=CSSMAP[id];if(cv)paper.style.setProperty(cv,parseFloat(val)+'px');
+  });
+  saveDesign();toast('Spacing reset to defaults');
+};
+
+/* ── BACKGROUND ──────────────────────────────────────────── */
 function applyBgImg(src,silent){
   var l=g('inv-bg');
   l.style.backgroundImage='url('+src+')';
@@ -602,20 +632,91 @@ function applyBgImg(src,silent){
   l.style.opacity=(parseFloat(g('bg-op').value)||15)/100;
   var tog=g('tog-bg');l.style.display=(tog&&tog.checked)?'block':'none';
   g('bg-prev').src=src;g('bg-prev').style.display='block';
-  if(src.length<5000000){lsSet(LS_BG,src);lsSet(LS_BGOP,g('bg-op').value);lsSet(LS_BGSZ,g('bg-sz').value);if(!silent)toast('Background applied');}
-  else if(!silent){toast('Applied but too large to save (>5MB)');}
+  if(!silent){
+    if(src.length<5000000){lsSet(LS.BG,src);lsSet(LS.BGOP,g('bg-op').value);lsSet(LS.BGSZ,g('bg-sz').value);}
+    toast(src.length<5000000?'Background applied':'Applied but too large to save (>5MB)');
+  }
 }
 window.applyBgUrl=function(){var u=g('bg-url').value.trim();if(!u){toast('Paste URL first');return;}applyBgImg(u);};
-window.removeBg=function(){var l=g('inv-bg');l.style.backgroundImage='';l.style.display='none';g('bg-prev').style.display='none';g('bg-prev').src='';g('bg-url').value='';[LS_BG,LS_BGOP,LS_BGSZ].forEach(lsRm);toast('Background removed');};
-window.setBgOp=function(v){g('inv-bg').style.opacity=v/100;g('bg-op-v').value=v;lsSet(LS_BGOP,v);};
-window.syncBgOp=function(v){var n=Math.min(100,Math.max(0,parseInt(v)||0));g('inv-bg').style.opacity=n/100;g('bg-op').value=n;lsSet(LS_BGOP,n);};
-window.setBgSz=function(v){g('inv-bg').style.backgroundSize=v;lsSet(LS_BGSZ,v);};
+window.removeBg=function(){var l=g('inv-bg');l.style.backgroundImage='';l.style.display='none';g('bg-prev').style.display='none';g('bg-prev').src='';g('bg-url').value='';[LS.BG,LS.BGOP,LS.BGSZ].forEach(lsRm);toast('Background removed');};
+window.setBgOp=function(v){g('inv-bg').style.opacity=v/100;g('bg-op-v').value=v;lsSet(LS.BGOP,v);};
+window.syncBgOp=function(v){var n=Math.min(100,Math.max(0,parseInt(v)||0));g('inv-bg').style.opacity=n/100;g('bg-op').value=n;lsSet(LS.BGOP,n);};
+window.setBgSz=function(v){g('inv-bg').style.backgroundSize=v;lsSet(LS.BGSZ,v);};
 
-window.doPrint=function(){
-  var was=editMode;if(was)window.toggleEdit();
-  setTimeout(function(){window.print();},200);
+/* ── PDF DOWNLOAD via html2canvas + jsPDF ────────────────── */
+window.downloadPDF=function(){
+  if(editMode)window.toggleEdit();
+
+  var overlay=g('pdf-overlay'),btn=g('btn-pdf');
+  overlay.classList.add('show');
+  btn.disabled=true;btn.textContent='Generating…';
+
+  /* Wait one frame so spinner renders, then capture */
+  requestAnimationFrame(function(){
+    setTimeout(function(){
+      var paper=g('inv-paper');
+      var origShadow=paper.style.boxShadow;
+      paper.style.boxShadow='none';
+
+      html2canvas(paper,{
+        scale:2,
+        useCORS:true,
+        allowTaint:true,
+        backgroundColor:'#ffffff',
+        width:paper.offsetWidth,
+        height:paper.offsetHeight,
+        logging:false,
+        onclone:function(doc){
+          /* Ensure cloned titlebar and table header have inline colors
+             so html2canvas doesn't lose them */
+          var tb=doc.querySelector('.inv-titlebar');
+          if(tb){tb.style.backgroundColor='#2d1b69';tb.style.color='#ffffff';}
+          doc.querySelectorAll('.inv-table thead th').forEach(function(th){
+            th.style.backgroundColor='#2d1b69';th.style.color='#ffffff';
+          });
+        }
+      }).then(function(canvas){
+        paper.style.boxShadow=origShadow;
+
+        var imgData=canvas.toDataURL('image/jpeg',1.0);
+        var jsPDF=window.jspdf.jsPDF;
+        var pdf=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+        var pageW=210,pageH=297;
+        var ratio=canvas.height/canvas.width;
+        var imgH=pageW*ratio;
+
+        if(imgH<=pageH){
+          pdf.addImage(imgData,'JPEG',0,0,pageW,imgH,undefined,'FAST');
+        } else {
+          /* multi-page slicing */
+          var pageHpx=canvas.width*(pageH/pageW);
+          var pages=Math.ceil(canvas.height/pageHpx);
+          for(var i=0;i<pages;i++){
+            if(i>0)pdf.addPage();
+            var sc=document.createElement('canvas');
+            sc.width=canvas.width;
+            var sh=Math.min(pageHpx,canvas.height-i*pageHpx);
+            sc.height=sh;
+            sc.getContext('2d').drawImage(canvas,0,i*pageHpx,canvas.width,sh,0,0,canvas.width,sh);
+            pdf.addImage(sc.toDataURL('image/jpeg',1.0),'JPEG',0,0,pageW,pageH*(sh/pageHpx),undefined,'FAST');
+          }
+        }
+
+        pdf.save('Northern-Logistics-Invoice.pdf');
+        overlay.classList.remove('show');
+        btn.disabled=false;btn.textContent='⬇ Download PDF';
+        toast('PDF downloaded successfully!');
+      }).catch(function(err){
+        paper.style.boxShadow=origShadow;
+        overlay.classList.remove('show');
+        btn.disabled=false;btn.textContent='⬇ Download PDF';
+        toast('PDF failed: '+err.message,6000);
+      });
+    },200);
+  });
 };
 
+/* ── CSV ─────────────────────────────────────────────────── */
 function splitLine(line){
   var res=[],cur='',inQ=false;
   for(var i=0;i<line.length;i++){
@@ -626,40 +727,30 @@ function splitLine(line){
   }
   res.push(cur);return res;
 }
-
-function detectColMap(headerRow){
+function detectColMap(hr){
   colMap={};var used={};
   Object.keys(ALIASES).forEach(function(field){
-    var aliases=ALIASES[field];
-    var found=headerRow.find(function(h){return h&&aliases.indexOf(sk(h))>=0&&!used[h];});
-    if(!found)found=headerRow.find(function(h){if(!h||used[h])return false;var hsk=sk(h);return aliases.some(function(a){return hsk.indexOf(a)>=0||a.indexOf(hsk)>=0;});});
-    if(found){colMap[field]=found;used[found]=true;}else colMap[field]=null;
+    var al=ALIASES[field];
+    var f=hr.find(function(h){return h&&al.indexOf(sk(h))>=0&&!used[h];});
+    if(!f)f=hr.find(function(h){if(!h||used[h])return false;var hsk=sk(h);return al.some(function(a){return hsk.indexOf(a)>=0||a.indexOf(hsk)>=0;});});
+    if(f){colMap[field]=f;used[f]=true;}else colMap[field]=null;
   });
 }
-
 function parseCSV(text){
   text=text.replace(/\r\n/g,'\n').replace(/\r/g,'\n');
-  var allLines=text.trim().split('\n');
-  if(!allLines.length){toast('Empty CSV');return;}
-  var headerCells=splitLine(allLines[0]).map(function(h){return h.replace(/^"|"$/g,'').trim();});
-  hdrs=headerCells.filter(Boolean);
-  detectColMap(hdrs);
+  var all=text.trim().split('\n');if(!all.length){toast('Empty CSV');return;}
+  var hc=splitLine(all[0]).map(function(h){return h.replace(/^"|"$/g,'').trim();});
+  hdrs=hc.filter(Boolean);detectColMap(hdrs);
   var skip=getSkipCount();
-  var dataLines=allLines.slice(skip);
-  rows=dataLines.filter(function(l){return l.trim();}).map(function(line){
+  rows=all.slice(skip).filter(function(l){return l.trim();}).map(function(line){
     var vals=splitLine(line),row={};
     hdrs.forEach(function(h,i){if(h)row[h]=(vals[i]||'').replace(/^"|"$/g,'').trim();});
     return row;
-  }).filter(function(r){
-    return Object.values(r).some(function(v){return v&&v.trim();});
-  });
+  }).filter(function(r){return Object.values(r).some(function(v){return v&&v.trim();});});
   renderTable();
   g('row-count-lbl').textContent=rows.length+' rows loaded (skipped '+skip+' header row'+(skip!==1?'s':'')+')';
-  if(rows.length===0){
-    toast('0 rows loaded. Try changing "Skip rows" to '+Math.max(0,skip-1)+' or '+(skip+1)+' in the sidebar.',5000);
-  }
+  if(rows.length===0)toast('0 rows loaded. Try adjusting "Skip rows".',5000);
 }
-
 function getV(row,field){
   var key=colMap[field];
   if(key&&row[key]!==undefined)return String(row[key]||'');
@@ -667,60 +758,36 @@ function getV(row,field){
   return '';
 }
 
+/* ── SHEET LOAD ──────────────────────────────────────────── */
 function extractId(url){var m=url.match(/\/spreadsheets\/d\/([a-zA-Z0-9_-]+)/);return m?m[1]:null;}
 function extractGid(url){var m=url.match(/[#&?]gid=(\d+)/);return m?m[1]:'0';}
-
 async function fetchCsvText(sid,gid){
   var url='https://docs.google.com/spreadsheets/d/'+sid+'/export?format=csv&gid='+gid;
   var ctrl=new AbortController();var tid=setTimeout(function(){ctrl.abort();},15000);
-  var r=await fetch(url,{mode:'cors',signal:ctrl.signal});
-  clearTimeout(tid);
+  var r=await fetch(url,{mode:'cors',signal:ctrl.signal});clearTimeout(tid);
   if(!r.ok)throw new Error('HTTP '+r.status+' — make sure the sheet is shared publicly');
   var txt=await r.text();
-  if(!txt||txt.length<3)throw new Error('Empty response from sheet');
-  if(txt.trim().startsWith('<'))throw new Error('Sheet is not public. Share it as "Anyone with the link can view"');
+  if(!txt||txt.length<3)throw new Error('Empty response');
+  if(txt.trim().startsWith('<'))throw new Error('Sheet not public — share as "Anyone with the link can view"');
   return txt;
 }
-
 async function loadSheet(){
   var raw=g('sheet-url').value.trim();if(!raw){toast('Paste a Google Sheet URL first');return;}
   var sid=extractId(raw);if(!sid){toast('Could not find spreadsheet ID in URL');return;}
-  var gid=extractGid(raw);
   var btn=g('btn-load');btn.disabled=true;btn.textContent='Loading...';setProgress(10);setStatus('y','Connecting...');
-  try{
-    setProgress(40);
-    var csv=await fetchCsvText(sid,gid);
-    setProgress(90);
-    parseCSV(csv);
-    setProgress(100);
-    setStatus('g','Connected — '+rows.length+' rows');
-    lsSet(LS_URL,raw);g('saved-badge').classList.add('show');
-    toast('Loaded '+rows.length+' rows');
-  } catch(e){
-    setStatus('r','Error: '+e.message);setProgress(0);
-    toast('Failed: '+e.message,6000);
-  } finally{btn.disabled=false;btn.textContent='Load Sheet';}
+  try{setProgress(40);var csv=await fetchCsvText(sid,extractGid(raw));setProgress(90);parseCSV(csv);setProgress(100);setStatus('g','Connected — '+rows.length+' rows');lsSet(LS.URL,raw);g('saved-badge').classList.add('show');toast('Loaded '+rows.length+' rows');}
+  catch(e){setStatus('r','Error: '+e.message);setProgress(0);toast('Failed: '+e.message,6000);}
+  finally{btn.disabled=false;btn.textContent='Load Sheet';}
 }
-
 async function loadSheetSilent(raw){
-  try{
-    var sid=extractId(raw),gid=extractGid(raw);
-    if(!sid)return;
-    setProgress(30);
-    var csv=await fetchCsvText(sid,gid);
-    setProgress(100);
-    parseCSV(csv);
-    setStatus('g','Auto-loaded — '+rows.length+' rows');
-    g('saved-badge').classList.add('show');
-  } catch(e){setStatus('r','Auto-load failed: '+e.message);setProgress(0);}
+  try{var sid=extractId(raw);if(!sid)return;setProgress(30);var csv=await fetchCsvText(sid,extractGid(raw));setProgress(100);parseCSV(csv);setStatus('g','Auto-loaded — '+rows.length+' rows');g('saved-badge').classList.add('show');}
+  catch(e){setStatus('r','Auto-load failed: '+e.message);setProgress(0);}
 }
 
+/* ── TABLE ───────────────────────────────────────────────── */
 function renderTable(){
   var body=g('tbl-body');
-  if(!rows.length){
-    body.innerHTML='<tr><td colspan="14"><div class="empty-state"><div class="ic">&#128205;</div><p>No data loaded. Try adjusting the "Skip rows" setting.</p></div></td></tr>';
-    updateSelBadge();return;
-  }
+  if(!rows.length){body.innerHTML='<tr><td colspan="14"><div class="empty-state"><div class="ic">&#128205;</div><p>No data loaded. Try adjusting the "Skip rows" setting.</p></div></td></tr>';updateSelBadge();return;}
   var html='';
   rows.forEach(function(r,i){
     html+='<tr draggable="true" data-idx="'+i+'">'
@@ -742,81 +809,53 @@ function renderTable(){
   });
   body.innerHTML=html;
   body.querySelectorAll('tr').forEach(function(tr){
-    tr.addEventListener('click',function(e){
-      if(e.target.tagName==='INPUT'||e.target.classList.contains('drag-handle'))return;
-      var chk=tr.querySelector('.row-chk');if(chk){chk.checked=!chk.checked;updateSel();}
-    });
+    tr.addEventListener('click',function(e){if(e.target.tagName==='INPUT'||e.target.classList.contains('drag-handle'))return;var chk=tr.querySelector('.row-chk');if(chk){chk.checked=!chk.checked;updateSel();}});
     tr.addEventListener('dragstart',function(e){dragSrc=+tr.dataset.idx;tr.classList.add('dragging');e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain',String(dragSrc));});
     tr.addEventListener('dragend',function(){tr.classList.remove('dragging');body.querySelectorAll('tr').forEach(function(r){r.classList.remove('drag-top','drag-bot');});});
     tr.addEventListener('dragover',function(e){e.preventDefault();body.querySelectorAll('tr').forEach(function(r){r.classList.remove('drag-top','drag-bot');});var rect=tr.getBoundingClientRect();if(e.clientY<rect.top+rect.height/2)tr.classList.add('drag-top');else tr.classList.add('drag-bot');});
     tr.addEventListener('dragleave',function(){tr.classList.remove('drag-top','drag-bot');});
-    tr.addEventListener('drop',function(e){
-      e.preventDefault();var destIdx=+tr.dataset.idx;
-      if(dragSrc===null||dragSrc===destIdx)return;
-      var rect=tr.getBoundingClientRect(),before=e.clientY<rect.top+rect.height/2;
-      var moved=rows.splice(dragSrc,1)[0];
-      var ni=before?destIdx:destIdx+1;if(dragSrc<destIdx)ni--;
-      ni=Math.max(0,Math.min(rows.length,ni));rows.splice(ni,0,moved);
-      dragSrc=null;renderTable();toast('Row reordered');
-    });
+    tr.addEventListener('drop',function(e){e.preventDefault();var di=+tr.dataset.idx;if(dragSrc===null||dragSrc===di)return;var rect=tr.getBoundingClientRect(),before=e.clientY<rect.top+rect.height/2;var moved=rows.splice(dragSrc,1)[0];var ni=before?di:di+1;if(dragSrc<di)ni--;ni=Math.max(0,Math.min(rows.length,ni));rows.splice(ni,0,moved);dragSrc=null;renderTable();toast('Row reordered');});
   });
   body.querySelectorAll('.row-chk').forEach(function(chk){chk.addEventListener('change',updateSel);});
   updateSelBadge();
 }
-
 function updateSel(){
   selRows=[];
   document.querySelectorAll('.row-chk').forEach(function(chk){
     var idx=+chk.dataset.idx,tr=chk.closest('tr');
-    if(chk.checked){selRows.push(rows[idx]);tr.classList.add('selected');}
-    else tr.classList.remove('selected');
-  });
-  updateSelBadge();
+    if(chk.checked){selRows.push(rows[idx]);tr.classList.add('selected');}else tr.classList.remove('selected');
+  });updateSelBadge();
 }
 function updateSelBadge(){var b=g('sel-badge');if(selRows.length){b.style.display='inline-block';b.textContent=selRows.length+' selected';}else b.style.display='none';}
 function toggleAll(c){document.querySelectorAll('.row-chk').forEach(function(x){x.checked=c;});updateSel();}
 window.selAll=function(){g('check-all').checked=true;toggleAll(true);};
 window.clearSel=function(){g('check-all').checked=false;toggleAll(false);};
 
+/* ── GENERATE INVOICE ────────────────────────────────────── */
 function genInvoice(){
   if(!selRows.length){toast('Select at least one row first');return;}
   var first=selRows[0];
-  setText('inv-name',getV(first,'Name'));
-  setText('inv-addr',getV(first,'Address'));
-  setText('inv-mob',getV(first,'Mobile'));
-  setText('inv-smark',getV(first,'ShippingMark'));
-  setText('inv-sno',getV(first,'ShippingNumber'));
-  setText('inv-tno',getV(first,'TrackingNumber'));
-  var dv=getV(first,'Date');if(!dv)dv=new Date().toLocaleDateString('en-GB');
-  setText('inv-date',dv);
-
+  setText('inv-name',getV(first,'Name'));setText('inv-addr',getV(first,'Address'));setText('inv-mob',getV(first,'Mobile'));
+  setText('inv-smark',getV(first,'ShippingMark'));setText('inv-sno',getV(first,'ShippingNumber'));setText('inv-tno',getV(first,'TrackingNumber'));
+  var dv=getV(first,'Date');if(!dv)dv=new Date().toLocaleDateString('en-GB');setText('inv-date',dv);
   var grand=0,html='';
   selRows.forEach(function(r,i){
-    var wRaw=getV(r,'Weight');
-    var uRaw=getV(r,'Unit');
-    var cRaw=getV(r,'Cost');
-    var tRaw=getV(r,'Total');
-    var descRaw=getV(r,'Description');
+    var wRaw=getV(r,'Weight'),uRaw=getV(r,'Unit'),cRaw=getV(r,'Cost'),tRaw=getV(r,'Total'),descRaw=getV(r,'Description');
     var w=parseFloat(String(wRaw).replace(/[^0-9.]/g,''))||0;
     var c=parseFloat(String(cRaw).replace(/[^0-9.]/g,''))||0;
     var line=(w&&c)?(w*c):(parseFloat(String(tRaw).replace(/[^0-9.]/g,''))||0);
     grand+=line;
     html+='<tr'+(i%2===1?' style="background:#fafafa;"':'')+'>'
-      +'<td>'+String(i+1).padStart(2,'0')+'</td>'
-      +'<td>'+esc(descRaw)+'</td>'
-      +'<td class="tc">'+esc(wRaw)+'</td>'
-      +'<td class="tc">'+esc(uRaw)+'</td>'
-      +'<td class="tc" style="color:#aaa;">&#215;</td>'
-      +'<td>'+esc(cRaw)+'</td>'
-      +'<td class="tr">'+(line?line.toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2}):'—')+'</td>'
-      +'</tr>';
+      +'<td>'+String(i+1).padStart(2,'0')+'</td><td>'+esc(descRaw)+'</td>'
+      +'<td class="tc">'+esc(wRaw)+'</td><td class="tc">'+esc(uRaw)+'</td>'
+      +'<td class="tc" style="color:#aaa;">&#215;</td><td>'+esc(cRaw)+'</td>'
+      +'<td class="tr">'+(line?line.toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2}):'—')+'</td></tr>';
   });
   g('inv-rows').innerHTML=html;
   setText('inv-grand',' '+(grand?grand.toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2}):'0.00'));
   if(editMode)window.toggleEdit();
   g('inv-modal').classList.add('open');
 }
-
 function closeModal(){g('inv-modal').classList.remove('open');if(editMode)window.toggleEdit();}
 window.closeModal=closeModal;
 

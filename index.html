@@ -150,7 +150,21 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 .inv-coname{font-size:19px;font-weight:900;color:#1a1a1a;letter-spacing:1px;}
 .inv-cosub{font-size:var(--sz-cosub);letter-spacing:4px;color:#888;display:block;font-weight:400;}
 .inv-contact-block{text-align:right;font-size:var(--sz-contact);line-height:1.8;}
-.inv-titlebar{background:#2d1b69;color:#fff;text-align:center;font-size:var(--sz-titlebar);font-weight:700;letter-spacing:6px;padding:8px;margin:var(--titlebar-my) 0;border-radius:2px;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+/* FIX: INVOICE titlebar — force background to print */
+.inv-titlebar{
+  background-color:#2d1b69 !important;
+  color:#fff !important;
+  text-align:center;
+  font-size:var(--sz-titlebar);
+  font-weight:700;
+  letter-spacing:6px;
+  padding:8px;
+  margin:var(--titlebar-my) 0;
+  border-radius:2px;
+  -webkit-print-color-adjust:exact !important;
+  print-color-adjust:exact !important;
+  color-adjust:exact !important;
+}
 .inv-meta{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:var(--meta-mb);flex-wrap:wrap;gap:10px;}
 .inv-meta-lhd{font-size:12px;font-weight:700;border-bottom:2px solid #1a1a1a;padding-bottom:2px;margin-bottom:7px;}
 .inv-field{display:flex;gap:4px;font-size:var(--sz-field);align-items:baseline;}
@@ -162,8 +176,18 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 #mf-name{margin-top:var(--mt-name);}#mf-addr{margin-top:var(--mt-addr);}#mf-mob{margin-top:var(--mt-mob);}
 #mf-date{margin-top:var(--mt-date);}#mf-page{margin-top:var(--mt-page);}
 #mf-smark{margin-top:var(--mt-smark);}#mf-sno{margin-top:var(--mt-sno);}#mf-tno{margin-top:var(--mt-tno);}
+/* FIX: Table header — force background to print */
 .inv-table{width:100%;border-collapse:collapse;margin:var(--table-my) 0;font-size:var(--sz-table);}
-.inv-table thead th{background:#2d1b69;color:#fff;padding:8px 10px;font-weight:600;text-align:left;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+.inv-table thead th{
+  background-color:#2d1b69 !important;
+  color:#fff !important;
+  padding:8px 10px;
+  font-weight:600;
+  text-align:left;
+  -webkit-print-color-adjust:exact !important;
+  print-color-adjust:exact !important;
+  color-adjust:exact !important;
+}
 .inv-table thead th.tc{text-align:center;}
 .inv-table thead th.tr{text-align:right;}
 .inv-table tbody td{padding:var(--row-py) 10px;border-bottom:1px solid #eee;vertical-align:middle;}
@@ -198,6 +222,9 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
   #inv-paper{width:210mm!important;height:297mm!important;min-height:297mm!important;box-shadow:none!important;border-radius:0!important;margin:0!important;padding:14mm 15mm 10mm 15mm!important;overflow:hidden!important;position:relative!important;display:flex!important;flex-direction:column!important;}
   #inv-bg{display:block!important;}
   #inv-paper [contenteditable]{border-bottom:none!important;background:transparent!important;}
+  /* Guarantee purple bars print */
+  .inv-titlebar{background-color:#2d1b69!important;color:#fff!important;}
+  .inv-table thead th{background-color:#2d1b69!important;color:#fff!important;}
 }
 </style>
 </head>
@@ -427,8 +454,17 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
         <div class="inv-footer-wrap">
           <div class="inv-footer">
             <div class="inv-socials" id="inv-socials">
+              <!-- Facebook -->
               <div class="sicon" style="background:#3b5998;font-size:11px;font-weight:900;">f</div>
-              <div class="sicon" style="background:linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);font-size:13px;">&#9728;</div>
+              <!-- Instagram — camera SVG icon -->
+              <div class="sicon" style="background:radial-gradient(circle at 30% 107%,#fdf497 0%,#fdf497 5%,#fd5949 45%,#d6249f 60%,#285aeb 90%);-webkit-print-color-adjust:exact;print-color-adjust:exact;">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
+                  <circle cx="12" cy="12" r="4"/>
+                  <circle cx="17.5" cy="6.5" r="1" fill="#fff" stroke="none"/>
+                </svg>
+              </div>
+              <!-- LinkedIn -->
               <div class="sicon" style="background:#0077b5;font-size:8px;font-weight:900;">in</div>
             </div>
             <div class="inv-footer-brand">
@@ -511,7 +547,6 @@ function boot(){
       if(f&&f.type.startsWith('image/')){var r=new FileReader();r.onload=function(ev){applyBgImg(ev.target.result);};r.readAsDataURL(f);}
     });
   }
-  // Restore saved settings
   var savedSkip=lsGet(LS_SKIP);if(savedSkip!==null)g('skip-rows').value=savedSkip;
   var savedUrl=lsGet(LS_URL);
   if(savedUrl){g('sheet-url').value=savedUrl;g('saved-badge').classList.add('show');setStatus('y','Auto-loading...');loadSheetSilent(savedUrl);}
@@ -521,14 +556,12 @@ function boot(){
 
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
 
-// ---- LOGO ----
 function applyLogoImg(src){
   var icon=g('inv-logo-icon');icon.innerHTML='<img src="'+src+'" alt="logo">';
   var prev=g('logo-prev');prev.src=src;prev.style.display='block';
 }
 window.removeLogo=function(){g('inv-logo-icon').innerHTML='N';var prev=g('logo-prev');prev.src='';prev.style.display='none';};
 
-// ---- EDIT MODE ----
 window.toggleEdit=function(){
   editMode=!editMode;
   var paper=g('inv-paper'),btn=g('btn-edit'),bar=g('edit-bar-txt');
@@ -578,13 +611,11 @@ window.setBgOp=function(v){g('inv-bg').style.opacity=v/100;g('bg-op-v').value=v;
 window.syncBgOp=function(v){var n=Math.min(100,Math.max(0,parseInt(v)||0));g('inv-bg').style.opacity=n/100;g('bg-op').value=n;lsSet(LS_BGOP,n);};
 window.setBgSz=function(v){g('inv-bg').style.backgroundSize=v;lsSet(LS_BGSZ,v);};
 
-// ---- PRINT ----
 window.doPrint=function(){
   var was=editMode;if(was)window.toggleEdit();
   setTimeout(function(){window.print();},200);
 };
 
-// ---- CSV PARSE ----
 function splitLine(line){
   var res=[],cur='',inQ=false;
   for(var i=0;i<line.length;i++){
@@ -606,37 +637,22 @@ function detectColMap(headerRow){
   });
 }
 
-function isHeaderRow(row){
-  // A row is a header if most cells are non-numeric text (no numbers)
-  var vals=Object.values(row).filter(function(v){return v&&v.trim();});
-  if(!vals.length)return true;
-  var numericCount=vals.filter(function(v){return !isNaN(parseFloat(v.replace(/[^0-9.]/g,'')))&&v.replace(/[^0-9.]/g,'').length>0;}).length;
-  return numericCount<vals.length*0.3;
-}
-
 function parseCSV(text){
   text=text.replace(/\r\n/g,'\n').replace(/\r/g,'\n');
   var allLines=text.trim().split('\n');
   if(!allLines.length){toast('Empty CSV');return;}
-
-  // Row 0 is always the column header row — use it to get column names
   var headerCells=splitLine(allLines[0]).map(function(h){return h.replace(/^"|"$/g,'').trim();});
   hdrs=headerCells.filter(Boolean);
   detectColMap(hdrs);
-
-  // Skip the number of rows specified by user (default 1 = just the header row itself)
   var skip=getSkipCount();
   var dataLines=allLines.slice(skip);
-
   rows=dataLines.filter(function(l){return l.trim();}).map(function(line){
     var vals=splitLine(line),row={};
     hdrs.forEach(function(h,i){if(h)row[h]=(vals[i]||'').replace(/^"|"$/g,'').trim();});
     return row;
   }).filter(function(r){
-    // Remove rows where ALL values are empty
     return Object.values(r).some(function(v){return v&&v.trim();});
   });
-
   renderTable();
   g('row-count-lbl').textContent=rows.length+' rows loaded (skipped '+skip+' header row'+(skip!==1?'s':'')+')';
   if(rows.length===0){
@@ -651,7 +667,6 @@ function getV(row,field){
   return '';
 }
 
-// ---- SHEET LOAD ----
 function extractId(url){var m=url.match(/\/spreadsheets\/d\/([a-zA-Z0-9_-]+)/);return m?m[1]:null;}
 function extractGid(url){var m=url.match(/[#&?]gid=(\d+)/);return m?m[1]:'0';}
 
@@ -700,7 +715,6 @@ async function loadSheetSilent(raw){
   } catch(e){setStatus('r','Auto-load failed: '+e.message);setProgress(0);}
 }
 
-// ---- TABLE RENDER ----
 function renderTable(){
   var body=g('tbl-body');
   if(!rows.length){
@@ -764,7 +778,6 @@ function toggleAll(c){document.querySelectorAll('.row-chk').forEach(function(x){
 window.selAll=function(){g('check-all').checked=true;toggleAll(true);};
 window.clearSel=function(){g('check-all').checked=false;toggleAll(false);};
 
-// ---- GENERATE INVOICE ----
 function genInvoice(){
   if(!selRows.length){toast('Select at least one row first');return;}
   var first=selRows[0];
@@ -786,7 +799,6 @@ function genInvoice(){
     var descRaw=getV(r,'Description');
     var w=parseFloat(String(wRaw).replace(/[^0-9.]/g,''))||0;
     var c=parseFloat(String(cRaw).replace(/[^0-9.]/g,''))||0;
-    // Weight x Cost/KG = Total; fallback to Total column if either is missing
     var line=(w&&c)?(w*c):(parseFloat(String(tRaw).replace(/[^0-9.]/g,''))||0);
     grand+=line;
     html+='<tr'+(i%2===1?' style="background:#fafafa;"':'')+'>'

@@ -35,6 +35,10 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 .saved-badge.show{display:inline-block;}
 .how-to{background:rgba(255,255,255,.04);border-radius:6px;padding:8px;font-size:9px;line-height:1.65;color:rgba(255,255,255,.45);}
 .how-to strong{color:rgba(255,255,255,.75);display:block;margin-bottom:2px;}
+.skip-row{display:flex;align-items:center;justify-content:space-between;gap:6px;}
+.skip-lbl{font-size:9px;color:rgba(255,255,255,.55);}
+.skip-inp{width:38px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:4px;color:#fff;padding:3px 5px;font-size:9px;font-family:'DM Mono',monospace;outline:none;text-align:center;}
+.skip-inp:focus{border-color:var(--gold);}
 #topbar h2{font-family:'DM Serif Display',serif;font-size:17px;color:var(--purple);}
 #topbar p{font-size:10px;color:var(--silver);margin-top:1px;}
 .topbar-actions{display:flex;gap:6px;align-items:center;}
@@ -64,7 +68,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 .tag-d{background:#fff3cd;color:#856404;}.tag-a{background:#d1fae5;color:#065f46;}
 .empty-state{padding:36px;text-align:center;color:var(--silver);}
 .empty-state .ic{font-size:34px;margin-bottom:7px;}
-#toast{position:fixed;bottom:18px;right:18px;background:#1a1a2e;color:#fff;padding:8px 13px;border-radius:6px;font-size:10.5px;font-weight:500;opacity:0;pointer-events:none;transition:opacity .3s;z-index:9999;max-width:280px;}
+#toast{position:fixed;bottom:18px;right:18px;background:#1a1a2e;color:#fff;padding:8px 13px;border-radius:6px;font-size:10.5px;font-weight:500;opacity:0;pointer-events:none;transition:opacity .3s;z-index:9999;max-width:300px;}
 #toast.show{opacity:1;}
 #inv-modal{display:none;position:fixed;inset:0;background:rgba(10,5,30,.83);z-index:500;align-items:flex-start;justify-content:center;padding:10px;gap:10px;overflow-y:auto;}
 #inv-modal.open{display:flex;}
@@ -104,7 +108,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 .bsb.danger{background:rgba(208,2,27,.25);border-color:rgba(208,2,27,.35);}
 .bsb.danger:hover{background:rgba(208,2,27,.45);}
 #bg-prev{width:100%;height:40px;border-radius:4px;object-fit:cover;margin-top:5px;display:none;border:1px solid rgba(255,255,255,.1);}
-#logo-prev{width:40px;height:40px;border-radius:50%;object-fit:cover;margin:5px auto 0;display:block;border:1px solid rgba(255,255,255,.1);}
+#logo-prev{width:40px;height:40px;border-radius:50%;object-fit:cover;margin:5px auto 0;display:none;border:1px solid rgba(255,255,255,.1);}
 .modal-inner{background:var(--bg);border-radius:10px;overflow:hidden;width:100%;max-width:920px;display:flex;flex-direction:column;box-shadow:0 24px 80px rgba(0,0,0,.55);flex-shrink:0;}
 .modal-hdr{background:var(--purple);color:#fff;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;gap:6px;}
 .modal-hdr h3{font-family:'DM Serif Display',serif;font-size:14px;}
@@ -143,7 +147,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 .inv-logo-area{display:flex;align-items:center;gap:9px;}
 .inv-logo-icon{width:50px;height:50px;border-radius:50%;background:#d0021b;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:18px;font-style:italic;flex-shrink:0;overflow:hidden;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
 .inv-logo-icon img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
-.inv-coname{font-size:19px;font-weight:900;color:#1a1a1a;letter-spacing:1px;font-family:'Plus Jakarta Sans',sans-serif;}
+.inv-coname{font-size:19px;font-weight:900;color:#1a1a1a;letter-spacing:1px;}
 .inv-cosub{font-size:var(--sz-cosub);letter-spacing:4px;color:#888;display:block;font-weight:400;}
 .inv-contact-block{text-align:right;font-size:var(--sz-contact);line-height:1.8;}
 .inv-titlebar{background:#2d1b69;color:#fff;text-align:center;font-size:var(--sz-titlebar);font-weight:700;letter-spacing:6px;padding:8px;margin:var(--titlebar-my) 0;border-radius:2px;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
@@ -204,6 +208,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
       <div class="logo-circle">N</div>
       <h1>Northern Logistics<span>Invoice Generator</span></h1>
     </div>
+
     <div>
       <div class="sec-label" style="display:flex;align-items:center;">Google Sheet URL<span class="saved-badge" id="saved-badge">&#10003; Saved</span></div>
       <input type="text" class="fi" id="sheet-url" placeholder="Paste Google Sheet URL...">
@@ -216,9 +221,20 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
       <div style="height:5px;"></div>
       <div class="status-row"><span class="dot" id="sdot"></span><span id="stext">Not connected</span></div>
     </div>
+
     <div class="how-to">
-      <strong>&#10003; How to use</strong>Paste your Google Sheet URL above. Rows 1 and 2 are skipped (headers). Data starts from row 3. Select rows then click Generate Invoice.
+      <strong>Header rows to skip</strong>
+      <div class="skip-row" style="margin-top:5px;">
+        <span class="skip-lbl">Skip top rows (headers):</span>
+        <input type="number" class="skip-inp" id="skip-rows" value="1" min="0" max="10">
+      </div>
+      <div style="margin-top:5px;font-size:8.5px;color:rgba(255,255,255,.35);">Default: 1 (skips row 1 as header). Set to 2 if your sheet has 2 header rows before data.</div>
     </div>
+
+    <div class="how-to">
+      <strong>&#10003; How to use</strong>Paste your Google Sheet URL, set how many header rows to skip, then click Load Sheet. Select rows and click Generate Invoice.
+    </div>
+
     <div class="how-to" style="margin-top:auto;">
       <strong>&#10023; Drag to reorder</strong>Grab &#10023; handle to reorder rows before generating.
     </div>
@@ -267,7 +283,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
       <div class="dst">Logo Image</div>
       <div class="logo-drop" onclick="document.getElementById('logo-file-in').click()"><div style="font-size:18px;">&#128444;&#65039;</div><p>Click to upload logo</p></div>
       <input type="file" id="logo-file-in" accept="image/*" style="display:none;">
-      <img id="logo-prev" src="" alt="" style="display:none;">
+      <img id="logo-prev" src="" alt="">
       <div style="height:4px;"></div>
       <button class="bsb danger" style="width:100%;" onclick="removeLogo()">&#10005; Remove Logo</button>
     </div>
@@ -351,7 +367,6 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
       </div>
       <div id="inv-paper">
         <div id="inv-bg"></div>
-        <!-- HEADER -->
         <div class="inv-hdr">
           <div class="inv-logo-area">
             <div class="inv-logo-icon" id="inv-logo-icon">N</div>
@@ -368,9 +383,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
             Mail : <span id="e-mail" contenteditable="false" data-ph="Email">info@northernlogistics.com</span>
           </div>
         </div>
-        <!-- TITLE BAR -->
         <div class="inv-titlebar" id="e-title" contenteditable="false" data-ph="INVOICE">INVOICE</div>
-        <!-- META -->
         <div class="inv-meta">
           <div>
             <div class="inv-meta-lhd">Bill to</div>
@@ -388,7 +401,6 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
             </div>
           </div>
         </div>
-        <!-- TABLE: No. | Description | Weight | Unit | x | Cost/KG | Total -->
         <table class="inv-table">
           <thead><tr>
             <th style="width:34px;">No.</th>
@@ -401,13 +413,10 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
           </tr></thead>
           <tbody id="inv-rows"></tbody>
         </table>
-        <!-- TOTAL -->
         <div class="inv-total-row">
           <div class="inv-total-box">Total : <span id="e-curr" contenteditable="false" data-ph="BDT">BDT</span><span class="total-val" id="inv-grand"></span></div>
         </div>
-        <!-- SPACER pushes banking+footer to bottom -->
         <div class="inv-spacer"></div>
-        <!-- BANKING -->
         <div class="inv-banking" id="inv-banking">
           <div class="banking-header">Banking Details <span class="banking-sep">|</span> <span id="e-bank" contenteditable="false" data-ph="Bank Name">Meghna Bank PLC</span></div>
           <span class="banking-line" id="e-holder" contenteditable="false" data-ph="Account Holder">JAYEDUR RAHMAN NIROB</span>
@@ -415,14 +424,12 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
           <span class="banking-line"><strong>Routing No :</strong> <span id="e-routing" contenteditable="false" data-ph="Routing">275260433</span></span>
           <span class="banking-line" id="e-branch" contenteditable="false" data-ph="Branch">Shah Mukhdum Sub Branch, Uttara, Dhaka North</span>
         </div>
-        <!-- FOOTER -->
         <div class="inv-footer-wrap">
           <div class="inv-footer">
             <div class="inv-socials" id="inv-socials">
-              <div class="sicon" style="background:#3b5998;">f</div>
-              <!-- Instagram icon instead of thread, no whatsapp -->
-              <div class="sicon" style="background:radial-gradient(circle at 30% 107%,#fdf497 0%,#fdf497 5%,#fd5949 45%,#d6249f 60%,#285AEB 90%);font-size:11px;">&#9728;</div>
-              <div class="sicon" style="background:#0077b5;">in</div>
+              <div class="sicon" style="background:#3b5998;font-size:11px;font-weight:900;">f</div>
+              <div class="sicon" style="background:linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);font-size:13px;">&#9728;</div>
+              <div class="sicon" style="background:#0077b5;font-size:8px;font-weight:900;">in</div>
             </div>
             <div class="inv-footer-brand">
               <span id="e-fname" contenteditable="false" data-ph="Footer Brand">NORTHERN LOGISTICS INTERNATIONAL</span>
@@ -440,57 +447,41 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 (function(){
 'use strict';
 
-// ---- COLUMN MAPPING (fixed for your sheet structure) ----
-// Row 1 = header labels row, Row 2 = sub-header, Row 3+ = data
-// Columns (0-indexed): A=ShippingNumber, B=TrackingNumber, C=ShippingMark,
-// D=Date, E=Name, F=Address, G=Mobile, H=Description, I=Quantity/Unit,
-// J=Weight, K=Cost, L=Total
-// We detect by header content from row 1, skip rows 1 and 2, data from row 3.
-
-var FIXED_COLS = {
-  ShippingNumber: null,
-  TrackingNumber: null,
-  ShippingMark:   null,
-  Date:           null,
-  Name:           null,
-  Address:        null,
-  Mobile:         null,
-  Description:    null,
-  Unit:           null,
-  Weight:         null,
-  Cost:           null,
-  Total:          null
+var ALIASES={
+  Name:['name','clientname','customername','client','customer','fullname','buyername','billto','billname'],
+  Address:['address','addr','location','area','district','city'],
+  Mobile:['mobile','phone','tel','contact','cellphone','phonenumber','contactno','mobileno'],
+  ShippingMark:['shippingmark','shipmark','mark','shipper','shippermark','marking'],
+  ShippingNumber:['shippingnumber','shipno','shippingno','shipnumber','shipmentno','shippingref'],
+  TrackingNumber:['trackingnumber','trackno','trackingno','tracknumber','awb','awbno','tracking'],
+  Description:['description','productname','itemname','desc','product','item','goods'],
+  Weight:['weight','wt','kg','weights','weightkg','grossweight','netweight','totalweight'],
+  Unit:['quantity','pcs','unit','qty','pieces','units','nos','pc'],
+  Cost:['cost','rate','price','costperkg','rateperkg','unitprice','unitcost','costkg','ratepkg'],
+  Total:['total','amount','sum','totalcost','totalamount','grandtotal','totalprice'],
+  Date:['date','dt','shipdate','invoicedate','orderdate','invoicedt','entrydate']
 };
 
-var ALIASES = {
-  Name:           ['name','clientname','customername','client','customer','fullname','buyername','billto','billname'],
-  Address:        ['address','addr','location','area','district','city'],
-  Mobile:         ['mobile','phone','tel','contact','cellphone','phonenumber','contactno','mobileno'],
-  ShippingMark:   ['shippingmark','shipmark','mark','shipper','shippermark','marking'],
-  ShippingNumber: ['shippingnumber','shipno','shippingno','shipnumber','shipmentno','shippingref'],
-  TrackingNumber: ['trackingnumber','trackno','trackingno','tracknumber','awb','awbno','tracking'],
-  Description:    ['description','productname','itemname','desc','product','item','goods'],
-  Weight:         ['weight','wt','kg','weights','weightkg','grossweight','netweight','totalweight'],
-  Unit:           ['quantity','pcs','unit','qty','pieces','units','nos','pc','quantityunit','unitpcs'],
-  Cost:           ['cost','rate','price','costperkg','rateperkg','unitprice','unitcost','costkg','ratepkg'],
-  Total:          ['total','amount','sum','totalcost','totalamount','grandtotal','totalprice'],
-  Date:           ['date','dt','shipdate','invoicedate','orderdate','invoicedt','entrydate']
-};
-
-var rows=[], selRows=[], hdrs=[], colMap={};
-var editMode=false, bgPX=50, bgPY=50, dragSrc=null;
-var LS_URL='nl3_url', LS_BG='nl3_bg', LS_BGOP='nl3_bgop', LS_BGSZ='nl3_bgsz';
+var rows=[],selRows=[],hdrs=[],colMap={};
+var editMode=false,dragSrc=null;
+var LS_URL='nl3_url',LS_BG='nl3_bg',LS_BGOP='nl3_bgop',LS_BGSZ='nl3_bgsz',LS_SKIP='nl3_skip';
 
 function g(id){return document.getElementById(id);}
 function esc(s){if(!s&&s!==0)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 var _tt;
-function toast(m){var t=g('toast');t.textContent=m;t.classList.add('show');clearTimeout(_tt);_tt=setTimeout(function(){t.classList.remove('show');},3500);}
+function toast(m,dur){var t=g('toast');t.textContent=m;t.classList.add('show');clearTimeout(_tt);_tt=setTimeout(function(){t.classList.remove('show');},dur||3500);}
 function setStatus(cls,msg){g('sdot').className='dot'+(cls?' '+cls:'');g('stext').textContent=msg;}
 function setProgress(p){g('prog-fill').style.width=p+'%';}
 function lsGet(k){try{return localStorage.getItem(k);}catch(e){return null;}}
 function lsSet(k,v){try{localStorage.setItem(k,v);}catch(e){}}
 function lsRm(k){try{localStorage.removeItem(k);}catch(e){}}
 function setText(id,v){var el=g(id);if(el)el.textContent=v||'';}
+function sk(s){return String(s).toLowerCase().replace(/[\s_\-\.\/\(\)]/g,'');}
+
+function getSkipCount(){
+  var v=parseInt(g('skip-rows').value);
+  return isNaN(v)||v<0?1:v;
+}
 
 function boot(){
   g('btn-load').addEventListener('click',loadSheet);
@@ -501,6 +492,7 @@ function boot(){
   g('btn-gen').addEventListener('click',genInvoice);
   g('check-all').addEventListener('change',function(){toggleAll(this.checked);});
   g('sheet-url').addEventListener('keydown',function(e){if(e.key==='Enter')loadSheet();});
+  g('skip-rows').addEventListener('change',function(){lsSet(LS_SKIP,this.value);});
   g('bg-file-in').addEventListener('change',function(){
     var f=this.files[0];if(!f)return;
     var r=new FileReader();r.onload=function(e){applyBgImg(e.target.result);};r.readAsDataURL(f);this.value='';
@@ -509,34 +501,32 @@ function boot(){
     var f=this.files[0];if(!f)return;
     var r=new FileReader();r.onload=function(e){applyLogoImg(e.target.result);};r.readAsDataURL(f);this.value='';
   });
-  var dz=g('dpanel').querySelector('.bg-drop');
-  dz.addEventListener('dragover',function(e){e.preventDefault();dz.style.borderColor='var(--gold)';});
-  dz.addEventListener('dragleave',function(){dz.style.borderColor='';});
-  dz.addEventListener('drop',function(e){
-    e.preventDefault();dz.style.borderColor='';
-    var f=e.dataTransfer.files[0];
-    if(f&&f.type.startsWith('image/')){var r=new FileReader();r.onload=function(ev){applyBgImg(ev.target.result);};r.readAsDataURL(f);}
-  });
-  restoreStorage();
-}
-
-function restoreStorage(){
-  try{var u=lsGet(LS_URL);if(u){g('sheet-url').value=u;g('saved-badge').classList.add('show');setStatus('y','Auto-loading...');loadSheetSilent(u);}}catch(e){}
-  try{var bg=lsGet(LS_BG);if(bg){var op=lsGet(LS_BGOP)||'15',sz=lsGet(LS_BGSZ)||'cover';g('bg-op').value=op;g('bg-op-v').value=op;g('bg-sz').value=sz;applyBgImg(bg,true);}}catch(e){}
+  var dz=document.querySelector('.bg-drop');
+  if(dz){
+    dz.addEventListener('dragover',function(e){e.preventDefault();dz.style.borderColor='var(--gold)';});
+    dz.addEventListener('dragleave',function(){dz.style.borderColor='';});
+    dz.addEventListener('drop',function(e){
+      e.preventDefault();dz.style.borderColor='';
+      var f=e.dataTransfer.files[0];
+      if(f&&f.type.startsWith('image/')){var r=new FileReader();r.onload=function(ev){applyBgImg(ev.target.result);};r.readAsDataURL(f);}
+    });
+  }
+  // Restore saved settings
+  var savedSkip=lsGet(LS_SKIP);if(savedSkip!==null)g('skip-rows').value=savedSkip;
+  var savedUrl=lsGet(LS_URL);
+  if(savedUrl){g('sheet-url').value=savedUrl;g('saved-badge').classList.add('show');setStatus('y','Auto-loading...');loadSheetSilent(savedUrl);}
+  var savedBg=lsGet(LS_BG);
+  if(savedBg){var op=lsGet(LS_BGOP)||'15',sz=lsGet(LS_BGSZ)||'cover';g('bg-op').value=op;g('bg-op-v').value=op;g('bg-sz').value=sz;applyBgImg(savedBg,true);}
 }
 
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
 
 // ---- LOGO ----
 function applyLogoImg(src){
-  var icon=g('inv-logo-icon');
-  icon.innerHTML='<img src="'+src+'" alt="logo">';
+  var icon=g('inv-logo-icon');icon.innerHTML='<img src="'+src+'" alt="logo">';
   var prev=g('logo-prev');prev.src=src;prev.style.display='block';
 }
-window.removeLogo=function(){
-  g('inv-logo-icon').innerHTML='N';
-  var prev=g('logo-prev');prev.src='';prev.style.display='none';
-};
+window.removeLogo=function(){g('inv-logo-icon').innerHTML='N';var prev=g('logo-prev');prev.src='';prev.style.display='none';};
 
 // ---- EDIT MODE ----
 window.toggleEdit=function(){
@@ -558,7 +548,11 @@ window.toggleEdit=function(){
 };
 
 window.toggleEl=function(id,dt,show){var el=g(id);if(el)el.style.display=show?dt:'none';};
-window.toggleBg=function(show){var l=g('inv-bg');if(!l)return;var hasBg=l.style.backgroundImage&&l.style.backgroundImage!=='none'&&l.style.backgroundImage!=='';l.style.display=(show&&hasBg)?'block':'none';};
+window.toggleBg=function(show){
+  var l=g('inv-bg');if(!l)return;
+  var hasBg=l.style.backgroundImage&&l.style.backgroundImage!=='none'&&l.style.backgroundImage!=='';
+  l.style.display=(show&&hasBg)?'block':'none';
+};
 window.setSZ=function(v,val){g('inv-paper').style.setProperty(v,parseFloat(val)+'px');};
 window.setSP=function(v,val,u){g('inv-paper').style.setProperty(v,parseFloat(val)+u);};
 window.resetSpacing=function(){
@@ -571,13 +565,12 @@ function applyBgImg(src,silent){
   var l=g('inv-bg');
   l.style.backgroundImage='url('+src+')';
   l.style.backgroundSize=g('bg-sz').value;
-  l.style.backgroundPosition=bgPX+'% '+bgPY+'%';
+  l.style.backgroundPosition='50% 50%';
   l.style.opacity=(parseFloat(g('bg-op').value)||15)/100;
-  var tog=g('tog-bg');
-  l.style.display=(tog&&tog.checked)?'block':'none';
+  var tog=g('tog-bg');l.style.display=(tog&&tog.checked)?'block':'none';
   g('bg-prev').src=src;g('bg-prev').style.display='block';
   if(src.length<5000000){lsSet(LS_BG,src);lsSet(LS_BGOP,g('bg-op').value);lsSet(LS_BGSZ,g('bg-sz').value);if(!silent)toast('Background applied');}
-  else{if(!silent)toast('Applied but not saved (too large)');}
+  else if(!silent){toast('Applied but too large to save (>5MB)');}
 }
 window.applyBgUrl=function(){var u=g('bg-url').value.trim();if(!u){toast('Paste URL first');return;}applyBgImg(u);};
 window.removeBg=function(){var l=g('inv-bg');l.style.backgroundImage='';l.style.display='none';g('bg-prev').style.display='none';g('bg-prev').src='';g('bg-url').value='';[LS_BG,LS_BGOP,LS_BGSZ].forEach(lsRm);toast('Background removed');};
@@ -588,50 +581,67 @@ window.setBgSz=function(v){g('inv-bg').style.backgroundSize=v;lsSet(LS_BGSZ,v);}
 // ---- PRINT ----
 window.doPrint=function(){
   var was=editMode;if(was)window.toggleEdit();
-  setTimeout(function(){window.print();},150);
+  setTimeout(function(){window.print();},200);
 };
 
 // ---- CSV PARSE ----
 function splitLine(line){
   var res=[],cur='',inQ=false;
-  for(var i=0;i<line.length;i++){var ch=line[i];if(ch==='"'){if(inQ&&line[i+1]==='"'){cur+='"';i++;}else inQ=!inQ;}else if(ch===','&&!inQ){res.push(cur);cur='';}else cur+=ch;}
+  for(var i=0;i<line.length;i++){
+    var ch=line[i];
+    if(ch==='"'){if(inQ&&line[i+1]==='"'){cur+='"';i++;}else inQ=!inQ;}
+    else if(ch===','&&!inQ){res.push(cur);cur='';}
+    else cur+=ch;
+  }
   res.push(cur);return res;
 }
 
-function sk(s){return String(s).toLowerCase().replace(/[\s_\-\.\/\(\)]/g,'');}
-
 function detectColMap(headerRow){
-  colMap={};
-  var used={};
+  colMap={};var used={};
   Object.keys(ALIASES).forEach(function(field){
     var aliases=ALIASES[field];
-    var found=headerRow.find(function(h){return aliases.indexOf(sk(h))>=0&&!used[h];});
-    if(!found)found=headerRow.find(function(h){var hsk=sk(h);return aliases.some(function(a){return hsk.indexOf(a)>=0||a.indexOf(hsk)>=0;})&&!used[h];});
+    var found=headerRow.find(function(h){return h&&aliases.indexOf(sk(h))>=0&&!used[h];});
+    if(!found)found=headerRow.find(function(h){if(!h||used[h])return false;var hsk=sk(h);return aliases.some(function(a){return hsk.indexOf(a)>=0||a.indexOf(hsk)>=0;});});
     if(found){colMap[field]=found;used[found]=true;}else colMap[field]=null;
   });
 }
 
+function isHeaderRow(row){
+  // A row is a header if most cells are non-numeric text (no numbers)
+  var vals=Object.values(row).filter(function(v){return v&&v.trim();});
+  if(!vals.length)return true;
+  var numericCount=vals.filter(function(v){return !isNaN(parseFloat(v.replace(/[^0-9.]/g,'')))&&v.replace(/[^0-9.]/g,'').length>0;}).length;
+  return numericCount<vals.length*0.3;
+}
+
 function parseCSV(text){
   text=text.replace(/\r\n/g,'\n').replace(/\r/g,'\n');
-  var lines=text.trim().split('\n');
-  if(lines.length<3){toast('Sheet has fewer than 3 rows — need header rows + data');return;}
+  var allLines=text.trim().split('\n');
+  if(!allLines.length){toast('Empty CSV');return;}
 
-  // Row 1 (index 0) = main header labels
-  var row1=splitLine(lines[0]).map(function(h){return h.replace(/^"|"$/g,'').trim();});
-  hdrs=row1.filter(Boolean);
-
-  // Detect column mapping from row 1
+  // Row 0 is always the column header row — use it to get column names
+  var headerCells=splitLine(allLines[0]).map(function(h){return h.replace(/^"|"$/g,'').trim();});
+  hdrs=headerCells.filter(Boolean);
   detectColMap(hdrs);
 
-  // Skip rows 0 and 1 (rows 1 and 2 in spreadsheet), data starts at lines[2]
-  rows=lines.slice(2).filter(function(l){return l.trim();}).map(function(line){
+  // Skip the number of rows specified by user (default 1 = just the header row itself)
+  var skip=getSkipCount();
+  var dataLines=allLines.slice(skip);
+
+  rows=dataLines.filter(function(l){return l.trim();}).map(function(line){
     var vals=splitLine(line),row={};
     hdrs.forEach(function(h,i){if(h)row[h]=(vals[i]||'').replace(/^"|"$/g,'').trim();});
     return row;
-  }).filter(function(r){return Object.values(r).some(function(v){return v;});});
+  }).filter(function(r){
+    // Remove rows where ALL values are empty
+    return Object.values(r).some(function(v){return v&&v.trim();});
+  });
 
   renderTable();
-  g('row-count-lbl').textContent=rows.length+' rows loaded';
+  g('row-count-lbl').textContent=rows.length+' rows loaded (skipped '+skip+' header row'+(skip!==1?'s':'')+')';
+  if(rows.length===0){
+    toast('0 rows loaded. Try changing "Skip rows" to '+Math.max(0,skip-1)+' or '+(skip+1)+' in the sidebar.',5000);
+  }
 }
 
 function getV(row,field){
@@ -645,50 +655,58 @@ function getV(row,field){
 function extractId(url){var m=url.match(/\/spreadsheets\/d\/([a-zA-Z0-9_-]+)/);return m?m[1]:null;}
 function extractGid(url){var m=url.match(/[#&?]gid=(\d+)/);return m?m[1]:'0';}
 
-function fetchCsv(url){
-  return new Promise(function(res,rej){
-    var t=setTimeout(function(){rej(new Error('timeout'));},15000);
-    fetch(url,{mode:'cors'}).then(function(r){clearTimeout(t);if(!r.ok)throw new Error('HTTP '+r.status);return r.text();})
-    .then(function(txt){if(!txt||txt.length<5)throw new Error('empty response');if(txt.trim().startsWith('<'))throw new Error('Sheet not public — share as "Anyone with link can view"');res(txt);})
-    .catch(function(e){clearTimeout(t);rej(e);});
-  });
-}
-
-async function loadSheetData(raw){
-  var sid=extractId(raw),gid=extractGid(raw);
-  if(!sid)throw new Error('Cannot find spreadsheet ID in URL');
-  setStatus('y','Connecting...');setProgress(20);
-  var txt=await fetchCsv('https://docs.google.com/spreadsheets/d/'+sid+'/export?format=csv&gid='+gid);
-  setProgress(100);return txt;
+async function fetchCsvText(sid,gid){
+  var url='https://docs.google.com/spreadsheets/d/'+sid+'/export?format=csv&gid='+gid;
+  var ctrl=new AbortController();var tid=setTimeout(function(){ctrl.abort();},15000);
+  var r=await fetch(url,{mode:'cors',signal:ctrl.signal});
+  clearTimeout(tid);
+  if(!r.ok)throw new Error('HTTP '+r.status+' — make sure the sheet is shared publicly');
+  var txt=await r.text();
+  if(!txt||txt.length<3)throw new Error('Empty response from sheet');
+  if(txt.trim().startsWith('<'))throw new Error('Sheet is not public. Share it as "Anyone with the link can view"');
+  return txt;
 }
 
 async function loadSheet(){
   var raw=g('sheet-url').value.trim();if(!raw){toast('Paste a Google Sheet URL first');return;}
-  var btn=g('btn-load');btn.disabled=true;btn.textContent='Loading...';setProgress(5);
+  var sid=extractId(raw);if(!sid){toast('Could not find spreadsheet ID in URL');return;}
+  var gid=extractGid(raw);
+  var btn=g('btn-load');btn.disabled=true;btn.textContent='Loading...';setProgress(10);setStatus('y','Connecting...');
   try{
-    var csv=await loadSheetData(raw);
+    setProgress(40);
+    var csv=await fetchCsvText(sid,gid);
+    setProgress(90);
     parseCSV(csv);
+    setProgress(100);
     setStatus('g','Connected — '+rows.length+' rows');
     lsSet(LS_URL,raw);g('saved-badge').classList.add('show');
     toast('Loaded '+rows.length+' rows');
   } catch(e){
-    setStatus('r','Failed: '+e.message);setProgress(0);toast('Failed: '+e.message);
+    setStatus('r','Error: '+e.message);setProgress(0);
+    toast('Failed: '+e.message,6000);
   } finally{btn.disabled=false;btn.textContent='Load Sheet';}
 }
 
 async function loadSheetSilent(raw){
-  try{var csv=await loadSheetData(raw);parseCSV(csv);setStatus('g','Auto-loaded — '+rows.length+' rows');g('saved-badge').classList.add('show');}
-  catch(e){setStatus('r','Auto-load failed: '+e.message);setProgress(0);}
+  try{
+    var sid=extractId(raw),gid=extractGid(raw);
+    if(!sid)return;
+    setProgress(30);
+    var csv=await fetchCsvText(sid,gid);
+    setProgress(100);
+    parseCSV(csv);
+    setStatus('g','Auto-loaded — '+rows.length+' rows');
+    g('saved-badge').classList.add('show');
+  } catch(e){setStatus('r','Auto-load failed: '+e.message);setProgress(0);}
 }
 
 // ---- TABLE RENDER ----
 function renderTable(){
   var body=g('tbl-body');
   if(!rows.length){
-    body.innerHTML='<tr><td colspan="14"><div class="empty-state"><div class="ic">&#128205;</div><p>No data yet. Load a sheet above.</p></div></td></tr>';
-    g('row-count-lbl').textContent='No data loaded';updateSelBadge();return;
+    body.innerHTML='<tr><td colspan="14"><div class="empty-state"><div class="ic">&#128205;</div><p>No data loaded. Try adjusting the "Skip rows" setting.</p></div></td></tr>';
+    updateSelBadge();return;
   }
-  g('row-count-lbl').textContent=rows.length+' rows — drag to reorder, click to select';
   var html='';
   rows.forEach(function(r,i){
     html+='<tr draggable="true" data-idx="'+i+'">'
@@ -714,9 +732,9 @@ function renderTable(){
       if(e.target.tagName==='INPUT'||e.target.classList.contains('drag-handle'))return;
       var chk=tr.querySelector('.row-chk');if(chk){chk.checked=!chk.checked;updateSel();}
     });
-    tr.addEventListener('dragstart',function(e){dragSrc=+tr.dataset.idx;tr.classList.add('dragging');e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain',dragSrc);});
+    tr.addEventListener('dragstart',function(e){dragSrc=+tr.dataset.idx;tr.classList.add('dragging');e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain',String(dragSrc));});
     tr.addEventListener('dragend',function(){tr.classList.remove('dragging');body.querySelectorAll('tr').forEach(function(r){r.classList.remove('drag-top','drag-bot');});});
-    tr.addEventListener('dragover',function(e){e.preventDefault();e.dataTransfer.dropEffect='move';body.querySelectorAll('tr').forEach(function(r){r.classList.remove('drag-top','drag-bot');});var rect=tr.getBoundingClientRect();if(e.clientY<rect.top+rect.height/2)tr.classList.add('drag-top');else tr.classList.add('drag-bot');});
+    tr.addEventListener('dragover',function(e){e.preventDefault();body.querySelectorAll('tr').forEach(function(r){r.classList.remove('drag-top','drag-bot');});var rect=tr.getBoundingClientRect();if(e.clientY<rect.top+rect.height/2)tr.classList.add('drag-top');else tr.classList.add('drag-bot');});
     tr.addEventListener('dragleave',function(){tr.classList.remove('drag-top','drag-bot');});
     tr.addEventListener('drop',function(e){
       e.preventDefault();var destIdx=+tr.dataset.idx;
@@ -750,8 +768,6 @@ window.clearSel=function(){g('check-all').checked=false;toggleAll(false);};
 function genInvoice(){
   if(!selRows.length){toast('Select at least one row first');return;}
   var first=selRows[0];
-
-  // Fill meta fields from first selected row
   setText('inv-name',getV(first,'Name'));
   setText('inv-addr',getV(first,'Address'));
   setText('inv-mob',getV(first,'Mobile'));
@@ -766,23 +782,13 @@ function genInvoice(){
     var wRaw=getV(r,'Weight');
     var uRaw=getV(r,'Unit');
     var cRaw=getV(r,'Cost');
+    var tRaw=getV(r,'Total');
     var descRaw=getV(r,'Description');
-
-    // Parse numeric values — strip currency symbols, commas etc
     var w=parseFloat(String(wRaw).replace(/[^0-9.]/g,''))||0;
     var c=parseFloat(String(cRaw).replace(/[^0-9.]/g,''))||0;
-
-    // Total = Weight × Cost/KG
-    var line=0;
-    if(w&&c){
-      line=w*c;
-    } else {
-      // Fallback to Total column if available
-      var tRaw=getV(r,'Total');
-      line=parseFloat(String(tRaw).replace(/[^0-9.]/g,''))||0;
-    }
+    // Weight x Cost/KG = Total; fallback to Total column if either is missing
+    var line=(w&&c)?(w*c):(parseFloat(String(tRaw).replace(/[^0-9.]/g,''))||0);
     grand+=line;
-
     html+='<tr'+(i%2===1?' style="background:#fafafa;"':'')+'>'
       +'<td>'+String(i+1).padStart(2,'0')+'</td>'
       +'<td>'+esc(descRaw)+'</td>'
@@ -793,10 +799,8 @@ function genInvoice(){
       +'<td class="tr">'+(line?line.toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2}):'—')+'</td>'
       +'</tr>';
   });
-
   g('inv-rows').innerHTML=html;
   setText('inv-grand',' '+(grand?grand.toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2}):'0.00'));
-
   if(editMode)window.toggleEdit();
   g('inv-modal').classList.add('open');
 }

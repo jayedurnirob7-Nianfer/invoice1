@@ -1,0 +1,984 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Northern Logistics Invoice Generator</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink: #1a1a2e; --purple: #2d1b69; --red: #d0021b; --gold: #c9a84c;
+  --silver: #8892a4; --bg: #f4f1eb; --card: #ffffff; --border: #ddd8cc; --row-hover: #f9f7f3;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); color: var(--ink); min-height: 100vh; }
+#dashboard { display: grid; grid-template-columns: 340px 1fr; grid-template-rows: auto 1fr; min-height: 100vh; }
+#sidebar { grid-row: 1/3; background: var(--purple); color: #fff; padding: 32px 24px; display: flex; flex-direction: column; gap: 18px; overflow-y: auto; }
+.sidebar-logo { display: flex; align-items: center; gap: 12px; }
+.logo-circle { width: 44px; height: 44px; border-radius: 50%; background: var(--red); display: flex; align-items: center; justify-content: center; font-family: 'DM Serif Display',serif; font-size: 20px; color: #fff; font-weight: 700; flex-shrink: 0; }
+.sidebar-logo h1 { font-family: 'DM Serif Display',serif; font-size: 15px; line-height: 1.3; color: #e8e4ff; }
+.sidebar-logo h1 span { display: block; font-size: 11px; color: rgba(255,255,255,.5); font-family: 'Plus Jakarta Sans',sans-serif; }
+.section-label { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: rgba(255,255,255,.4); margin-bottom: 8px; }
+.sheet-input-wrap { display: flex; flex-direction: column; gap: 8px; }
+#sheet-url { background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.2); border-radius: 8px; color: #fff; padding: 10px 12px; font-family: 'DM Mono',monospace; font-size: 11px; outline: none; width: 100%; transition: border-color .2s; }
+#sheet-url::placeholder { color: rgba(255,255,255,.3); }
+#sheet-url:focus { border-color: var(--gold); }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: none; cursor: pointer; font-family: 'Plus Jakarta Sans',sans-serif; font-weight: 600; border-radius: 8px; transition: all .2s; }
+.btn-gold { background: var(--gold); color: var(--purple); padding: 10px 16px; font-size: 13px; width: 100%; }
+.btn-gold:hover { background: #e0b85a; transform: translateY(-1px); }
+.btn-gold:disabled { opacity: .6; cursor: not-allowed; transform: none; }
+.btn-purple { background: var(--purple); color: #fff; padding: 11px 20px; font-size: 13px; }
+.btn-purple:hover { background: #3d2a88; }
+.btn-red { background: var(--red); color: #fff; padding: 11px 20px; font-size: 13px; }
+.btn-red:hover { background: #b5021a; }
+.btn-outline { background: transparent; color: var(--purple); border: 1.5px solid var(--purple); padding: 10px 18px; font-size: 13px; }
+.btn-outline:hover { background: var(--purple); color: #fff; }
+.btn-green { background: #16a34a; color: #fff; padding: 10px 16px; font-size: 13px; width: 100%; }
+.btn-green:hover { background: #15803d; transform: translateY(-1px); }
+.divider { border: none; border-top: 1px solid rgba(255,255,255,.1); margin: 4px 0; }
+.how-to { background: rgba(255,255,255,.07); border-radius: 10px; padding: 14px; font-size: 12px; line-height: 1.7; color: rgba(255,255,255,.6); }
+.how-to strong { color: rgba(255,255,255,.9); display: block; margin-bottom: 6px; }
+.how-to ol { padding-left: 16px; }
+.how-to li { margin-bottom: 4px; }
+.status-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #888; margin-right: 6px; vertical-align: middle; flex-shrink: 0; }
+.status-dot.green { background: #4caf50; }
+.status-dot.red { background: var(--red); }
+.status-dot.yellow { background: #f59e0b; }
+#conn-status { font-size: 12px; color: rgba(255,255,255,.6); display: flex; align-items: flex-start; gap: 0; }
+.tab-bar { display: flex; gap: 4px; background: rgba(0,0,0,.2); border-radius: 8px; padding: 4px; }
+.tab-btn { flex: 1; background: transparent; border: none; color: rgba(255,255,255,.5); font-family: 'Plus Jakarta Sans',sans-serif; font-size: 11px; font-weight: 600; padding: 7px 4px; border-radius: 6px; cursor: pointer; transition: all .2s; }
+.tab-btn.active { background: rgba(255,255,255,.15); color: #fff; }
+.tab-panel { display: none; }
+.tab-panel.active { display: flex; flex-direction: column; gap: 8px; }
+#csv-paste { background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.2); border-radius: 8px; color: #fff; padding: 10px 12px; font-family: 'DM Mono',monospace; font-size: 10px; outline: none; width: 100%; transition: border-color .2s; min-height: 100px; resize: vertical; line-height: 1.5; }
+#csv-paste::placeholder { color: rgba(255,255,255,.25); }
+#csv-paste:focus { border-color: var(--gold); }
+.tip { font-size: 11px; color: rgba(255,255,255,.4); line-height: 1.6; }
+.tip strong { color: rgba(255,255,255,.7); }
+#topbar { background: var(--card); border-bottom: 1px solid var(--border); padding: 18px 32px; display: flex; align-items: center; justify-content: space-between; }
+#topbar h2 { font-family: 'DM Serif Display',serif; font-size: 22px; color: var(--purple); }
+#topbar p { font-size: 12px; color: var(--silver); margin-top: 2px; }
+.topbar-actions { display: flex; gap: 10px; align-items: center; }
+#main { padding: 28px 32px; overflow-y: auto; }
+.table-wrap { background: var(--card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,.04); }
+.table-wrap table { width: 100%; border-collapse: collapse; }
+.table-wrap thead th { background: var(--purple); color: rgba(255,255,255,.85); padding: 12px 14px; text-align: left; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; font-weight: 600; white-space: nowrap; }
+.table-wrap tbody tr { border-bottom: 1px solid var(--border); cursor: pointer; transition: background .12s; }
+.table-wrap tbody tr:last-child { border-bottom: none; }
+.table-wrap tbody tr:hover { background: var(--row-hover); }
+.table-wrap tbody tr.selected { background: #eee9ff; }
+.table-wrap tbody td { padding: 11px 14px; font-size: 13px; }
+.table-wrap tbody td:first-child { width: 40px; text-align: center; }
+.row-chk { width: 16px; height: 16px; cursor: pointer; accent-color: var(--purple); }
+.empty-state { padding: 60px 20px; text-align: center; color: var(--silver); }
+.empty-state .big-icon { font-size: 48px; margin-bottom: 12px; }
+.empty-state p { font-size: 14px; }
+.tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+.tag-date { background: #fff3cd; color: #856404; }
+.tag-amount { background: #d1fae5; color: #065f46; }
+.sel-count { background: var(--gold); color: var(--purple); border-radius: 20px; padding: 2px 10px; font-size: 12px; font-weight: 700; }
+#toast { position: fixed; bottom: 28px; right: 28px; background: var(--ink); color: #fff; padding: 12px 20px; border-radius: 8px; font-size: 13px; font-weight: 500; opacity: 0; pointer-events: none; transition: opacity .3s; z-index: 9999; max-width: 360px; }
+#toast.show { opacity: 1; }
+.progress-bar { height: 3px; background: rgba(255,255,255,.1); border-radius: 2px; overflow: hidden; }
+.progress-fill { height: 100%; background: var(--gold); width: 0%; transition: width .3s; border-radius: 2px; }
+
+/* ── INVOICE MODAL ── */
+#invoice-modal { display: none; position: fixed; inset: 0; background: rgba(20,10,50,.75); z-index: 200; align-items: flex-start; justify-content: center; padding: 20px; overflow-y: auto; }
+#invoice-modal.open { display: flex; gap: 20px; }
+.modal-inner { background: var(--bg); border-radius: 16px; overflow: hidden; width: 100%; max-width: 860px; display: flex; flex-direction: column; box-shadow: 0 24px 80px rgba(0,0,0,.4); flex-shrink: 0; }
+.modal-header { background: var(--purple); color: #fff; padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+.modal-header h3 { font-family: 'DM Serif Display',serif; font-size: 17px; }
+.modal-header .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.btn-close { background: rgba(255,255,255,.15); border: none; color: #fff; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; font-size: 16px; transition: background .2s; }
+.btn-close:hover { background: rgba(255,255,255,.3); }
+.modal-body { overflow-y: auto; padding: 24px; max-height: 80vh; }
+
+/* ── DESIGN PANEL ── */
+#design-panel { background: var(--purple); border-radius: 16px; width: 320px; flex-shrink: 0; max-height: 92vh; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 14px; align-self: flex-start; position: sticky; top: 0; }
+#design-panel h4 { font-family: 'DM Serif Display',serif; color: #fff; font-size: 16px; }
+.design-section { background: rgba(255,255,255,.07); border-radius: 10px; padding: 14px; }
+.design-section-title { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: rgba(255,255,255,.45); margin-bottom: 10px; }
+.design-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; gap: 8px; }
+.design-row:last-child { margin-bottom: 0; }
+.design-label { font-size: 11px; color: rgba(255,255,255,.75); flex: 1; min-width: 0; }
+.design-control { display: flex; align-items: center; gap: 6px; }
+.spacing-input { width: 56px; background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.2); border-radius: 6px; color: #fff; padding: 5px 8px; font-size: 12px; font-family: 'DM Mono',monospace; outline: none; text-align: center; }
+.spacing-input:focus { border-color: var(--gold); }
+.spacing-unit { font-size: 10px; color: rgba(255,255,255,.4); }
+.range-wrap { display: flex; align-items: center; gap: 6px; }
+.range-wrap input[type=range] { width: 80px; accent-color: var(--gold); }
+.opacity-input { width: 50px; background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.2); border-radius: 6px; color: #fff; padding: 5px 8px; font-size: 12px; outline: none; text-align: center; }
+
+/* background image controls */
+.bg-upload-area { border: 2px dashed rgba(255,255,255,.25); border-radius: 8px; padding: 14px; text-align: center; cursor: pointer; transition: border-color .2s; margin-bottom: 8px; }
+.bg-upload-area:hover { border-color: var(--gold); }
+.bg-upload-area p { font-size: 11px; color: rgba(255,255,255,.5); margin-top: 6px; }
+#bg-url-input { background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.2); border-radius: 6px; color: #fff; padding: 7px 10px; font-size: 11px; outline: none; width: 100%; margin-bottom: 6px; font-family: 'DM Mono',monospace; }
+#bg-url-input::placeholder { color: rgba(255,255,255,.3); }
+#bg-url-input:focus { border-color: var(--gold); }
+.bg-btn-row { display: flex; gap: 6px; }
+.bg-small-btn { flex: 1; background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.2); border-radius: 6px; color: #fff; padding: 7px 8px; font-size: 11px; font-family: 'Plus Jakarta Sans',sans-serif; font-weight: 600; cursor: pointer; transition: background .2s; }
+.bg-small-btn:hover { background: rgba(255,255,255,.22); }
+.bg-small-btn.danger { background: rgba(208,2,27,.3); border-color: rgba(208,2,27,.4); }
+.bg-small-btn.danger:hover { background: rgba(208,2,27,.5); }
+.bg-preview { width: 100%; height: 60px; border-radius: 6px; object-fit: cover; margin-top: 8px; display: none; border: 1px solid rgba(255,255,255,.15); }
+.select-control { background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.2); border-radius: 6px; color: #fff; padding: 5px 8px; font-size: 11px; outline: none; }
+.select-control option { background: #2d1b69; }
+
+/* ── INVOICE PAPER ── */
+#invoice-paper {
+  background: #fff;
+  width: 100%;
+  max-width: 794px;
+  margin: 0 auto;
+  font-family: Arial, sans-serif;
+  font-size: 13px;
+  box-shadow: 0 4px 24px rgba(0,0,0,.12);
+  border-radius: 4px;
+  color: #1a1a1a;
+  position: relative;
+  overflow: hidden;
+  /* spacing vars with defaults */
+  --sp-paper-pad: 36px;
+  --sp-header-mb: 20px;
+  --sp-titlebar-mv: 16px;
+  --sp-meta-mb: 20px;
+  --sp-field-mb: 6px;
+  --sp-table-mv: 16px;
+  --sp-total-mt: 8px;
+  --sp-banking-mt: 24px;
+  --sp-footer-mt: 24px;
+  --sp-name-mt: 0px;
+  --sp-address-mt: 0px;
+  --sp-mobile-mt: 0px;
+  --sp-shipmark-mt: 0px;
+  --sp-shipno-mt: 0px;
+  --sp-trackno-mt: 0px;
+  --sp-desc-mt: 0px;
+  --sp-table-row: 9px;
+  padding: var(--sp-paper-pad);
+}
+#inv-bg-layer {
+  position: absolute; inset: 0; z-index: 0;
+  background-size: cover; background-position: center; background-repeat: no-repeat;
+  pointer-events: none;
+  opacity: 0.15;
+  display: none;
+}
+#invoice-paper > *:not(#inv-bg-layer):not(.inv-watermark) { position: relative; z-index: 1; }
+.inv-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: var(--sp-header-mb); }
+.inv-logo-area { display: flex; align-items: center; gap: 10px; }
+.inv-logo-icon { width: 60px; height: 60px; border-radius: 50%; background: var(--red); display: flex; align-items: center; justify-content: center; color: white; font-weight: 900; font-size: 22px; font-style: italic; overflow: hidden; flex-shrink: 0; }
+.inv-company-name { font-size: 22px; font-weight: 900; color: #1a1a1a; letter-spacing: 1px; }
+.inv-company-name span { font-size: 11px; letter-spacing: 4px; color: #888; display: block; font-weight: 400; }
+.inv-contact { text-align: right; font-size: 12px; line-height: 1.8; }
+.inv-title-bar { background: var(--purple); color: #fff; text-align: center; font-size: 22px; font-weight: 700; letter-spacing: 6px; padding: 10px; margin: var(--sp-titlebar-mv) 0; border-radius: 2px; }
+.inv-meta { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: var(--sp-meta-mb); flex-wrap: wrap; gap: 16px; }
+.inv-meta-left-title { font-size: 13px; font-weight: 700; border-bottom: 2px solid #1a1a1a; padding-bottom: 2px; margin-bottom: 10px; }
+.inv-field { display: flex; gap: 6px; font-size: 13px; }
+.inv-field strong { min-width: 90px; white-space: nowrap; }
+.inv-field span { border-bottom: 1px solid #ccc; flex: 1; min-width: 140px; padding-bottom: 2px; }
+.inv-meta-right { text-align: right; font-size: 13px; line-height: 1.9; }
+.inv-meta-right .inv-field { justify-content: flex-end; }
+.inv-meta-right .inv-field span { text-align: left; min-width: 120px; }
+/* per-field spacing */
+#inv-field-name    { margin-top: var(--sp-name-mt); }
+#inv-field-address { margin-top: var(--sp-address-mt); }
+#inv-field-mobile  { margin-top: var(--sp-mobile-mt); }
+#inv-field-shipmark  { margin-top: var(--sp-shipmark-mt); }
+#inv-field-shipno    { margin-top: var(--sp-shipno-mt); }
+#inv-field-trackno   { margin-top: var(--sp-trackno-mt); }
+.inv-table { width: 100%; border-collapse: collapse; margin: var(--sp-table-mv) 0; }
+.inv-table thead th { background: var(--purple); color: #fff; padding: 9px 12px; font-size: 12px; font-weight: 600; text-align: left; }
+.inv-table thead th:last-child { text-align: right; }
+.inv-table tbody td { padding: var(--sp-table-row) 12px; font-size: 13px; border-bottom: 1px solid #eee; }
+.inv-table tbody td:last-child { text-align: right; }
+.inv-table tbody tr:nth-child(even) { background: #fafafa; }
+.inv-total-row { display: flex; justify-content: flex-end; margin-top: var(--sp-total-mt); border-top: 2px solid #1a1a1a; padding-top: 10px; }
+.inv-total-box { font-size: 14px; font-weight: 700; }
+.inv-total-box span { margin-left: 16px; color: var(--red); font-size: 16px; }
+.inv-watermark { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); opacity: .04; pointer-events: none; font-size: 42px; font-weight: 900; text-transform: uppercase; color: var(--purple); z-index: 0; text-align: center; line-height: 1.3; white-space: nowrap; }
+.inv-banking { margin-top: var(--sp-banking-mt); border-top: 1px solid #ddd; padding-top: 16px; font-size: 12px; line-height: 1.8; }
+.inv-footer { display: flex; justify-content: space-between; align-items: center; margin-top: var(--sp-footer-mt); border-top: 2px solid var(--purple); padding-top: 12px; flex-wrap: wrap; gap: 12px; }
+.inv-footer-logo { font-size: 18px; font-weight: 900; color: var(--purple); letter-spacing: 1px; }
+.inv-footer-logo span { display: block; font-size: 10px; letter-spacing: 3px; color: var(--gold); font-weight: 600; }
+.inv-socials { display: flex; gap: 8px; }
+.inv-social-icon { width: 28px; height: 28px; border-radius: 50%; background: #ff5722; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; }
+
+@media print {
+  body * { visibility: hidden; }
+  #invoice-paper, #invoice-paper * { visibility: visible; }
+  #invoice-paper { position: fixed; inset: 0; box-shadow: none; max-width: none; width: 100%; border-radius: 0; }
+}
+</style>
+</head>
+<body>
+
+<div id="dashboard">
+  <aside id="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-circle">N</div>
+      <h1>Northern Logistics<span>Invoice Generator</span></h1>
+    </div>
+
+    <div>
+      <div class="section-label">Data Source</div>
+      <div class="tab-bar">
+        <button class="tab-btn active" id="tab-sheet" onclick="switchTab('sheet')">🔗 Sheet</button>
+        <button class="tab-btn" id="tab-paste" onclick="switchTab('paste')">📋 CSV</button>
+        <button class="tab-btn" id="tab-manual" onclick="switchTab('manual')">✏️ Manual</button>
+      </div>
+    </div>
+
+    <!-- Google Sheet -->
+    <div class="tab-panel active" id="panel-sheet">
+      <div class="section-label">Google Sheet URL</div>
+      <div class="sheet-input-wrap">
+        <input type="text" id="sheet-url" placeholder="Paste your Google Sheet URL here..." />
+        <div class="progress-bar" id="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+        <button class="btn btn-gold" id="btn-load">↻ Load Sheet Data</button>
+      </div>
+      <div id="conn-status" style="margin-top:4px;">
+        <span class="status-dot" id="status-dot"></span>
+        <span id="status-text">Not connected</span>
+      </div>
+      <div class="how-to">
+        <strong>How to connect your Sheet</strong>
+        <ol>
+          <li>Open your Google Sheet</li>
+          <li>Click <strong>Share</strong> → set to <em>Anyone with the link</em></li>
+          <li>Copy the URL &amp; paste above</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- Paste CSV -->
+    <div class="tab-panel" id="panel-paste">
+      <div class="section-label">Paste CSV Data</div>
+      <textarea id="csv-paste" placeholder="Name,Address,Mobile,ShippingMark,ShippingNumber,TrackingNumber,Description,Weight,Unit,Cost,Total,Date"></textarea>
+      <button class="btn btn-green" id="btn-parse-csv">✓ Load CSV Data</button>
+    </div>
+
+    <!-- Manual -->
+    <div class="tab-panel" id="panel-manual">
+      <div class="section-label">Add Row Manually</div>
+      <div style="display:flex;flex-direction:column;gap:6px;" id="manual-fields">
+        <input class="mf" data-key="Name" type="text" placeholder="Name" style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:6px;color:#fff;padding:8px 10px;font-size:12px;outline:none;width:100%;">
+        <input class="mf" data-key="Address" type="text" placeholder="Address" style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:6px;color:#fff;padding:8px 10px;font-size:12px;outline:none;width:100%;">
+        <input class="mf" data-key="Mobile" type="text" placeholder="Mobile" style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:6px;color:#fff;padding:8px 10px;font-size:12px;outline:none;width:100%;">
+        <input class="mf" data-key="ShippingMark" type="text" placeholder="Shipping Mark" style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:6px;color:#fff;padding:8px 10px;font-size:12px;outline:none;width:100%;">
+        <input class="mf" data-key="ShippingNumber" type="text" placeholder="Shipping Number" style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:6px;color:#fff;padding:8px 10px;font-size:12px;outline:none;width:100%;">
+        <input class="mf" data-key="TrackingNumber" type="text" placeholder="Tracking Number" style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:6px;color:#fff;padding:8px 10px;font-size:12px;outline:none;width:100%;">
+        <input class="mf" data-key="Description" type="text" placeholder="Description" style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:6px;color:#fff;padding:8px 10px;font-size:12px;outline:none;width:100%;">
+        <div style="display:flex;gap:6px;">
+          <input class="mf" data-key="Weight" type="number" placeholder="Weight" style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:6px;color:#fff;padding:8px 10px;font-size:12px;outline:none;flex:1;">
+          <input class="mf" data-key="Unit" type="text" placeholder="Unit" style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:6px;color:#fff;padding:8px 10px;font-size:12px;outline:none;width:60px;">
+        </div>
+        <div style="display:flex;gap:6px;">
+          <input class="mf" data-key="Cost" type="number" placeholder="Cost/KG" style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:6px;color:#fff;padding:8px 10px;font-size:12px;outline:none;flex:1;">
+          <input class="mf" data-key="Total" type="number" placeholder="Total" style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:6px;color:#fff;padding:8px 10px;font-size:12px;outline:none;flex:1;">
+        </div>
+        <input class="mf" data-key="Date" type="date" style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:6px;color:#fff;padding:8px 10px;font-size:12px;outline:none;width:100%;">
+      </div>
+      <div style="display:flex;gap:6px;margin-top:4px;">
+        <button class="btn btn-green" id="btn-add-row" style="flex:1;">+ Add Row</button>
+        <button class="btn" id="btn-clear-rows" style="background:rgba(255,255,255,.15);color:#fff;padding:10px 12px;font-size:12px;">🗑 Clear</button>
+      </div>
+    </div>
+
+    <div class="how-to" style="margin-top:auto;">
+      <strong>Required Columns</strong>
+      <div style="font-family:'DM Mono',monospace;font-size:11px;line-height:2;">
+        Name, Address, Mobile,<br>
+        ShippingMark, ShippingNumber,<br>
+        TrackingNumber, Description,<br>
+        Weight, Unit, Cost, Total, Date
+      </div>
+    </div>
+  </aside>
+
+  <header id="topbar">
+    <div>
+      <h2>Sheet Data</h2>
+      <p id="row-count-label">Load your data to see rows</p>
+    </div>
+    <div class="topbar-actions">
+      <span id="sel-badge" class="sel-count" style="display:none;">0 selected</span>
+      <button class="btn btn-outline" id="btn-select-all">Select All</button>
+      <button class="btn btn-purple" id="btn-clear">Clear</button>
+      <button class="btn btn-red" id="btn-generate">Generate Invoice →</button>
+    </div>
+  </header>
+
+  <main id="main">
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th><input type="checkbox" id="check-all" style="width:16px;height:16px;accent-color:#fff;"></th>
+            <th>Name</th><th>Address</th><th>Mobile</th><th>Shipping Mark</th>
+            <th>Description</th><th>Weight</th><th>Unit</th><th>Cost/KG</th><th>Total</th><th>Date</th>
+          </tr>
+        </thead>
+        <tbody id="table-body">
+          <tr><td colspan="11">
+            <div class="empty-state">
+              <div class="big-icon">📊</div>
+              <p>Use the sidebar to load your data — Google Sheet URL, paste CSV, or enter manually.</p>
+            </div>
+          </td></tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+</div>
+
+<!-- INVOICE MODAL -->
+<div id="invoice-modal">
+
+  <!-- DESIGN PANEL -->
+  <div id="design-panel">
+    <h4>🎨 Invoice Designer</h4>
+
+    <!-- Background Image -->
+    <div class="design-section">
+      <div class="design-section-title">Background Image</div>
+      <div class="bg-upload-area" id="bg-drop-zone" onclick="document.getElementById('bg-file-input').click()">
+        <div style="font-size:24px;">🖼️</div>
+        <p>Click or drag &amp; drop image</p>
+      </div>
+      <input type="file" id="bg-file-input" accept="image/*" style="display:none;">
+      <input type="text" id="bg-url-input" placeholder="Or paste image URL here...">
+      <div class="bg-btn-row">
+        <button class="bg-small-btn" onclick="applyBgUrl()">Apply URL</button>
+        <button class="bg-small-btn danger" onclick="removeBg()">✕ Remove</button>
+      </div>
+      <img id="bg-preview" src="" alt="preview">
+
+      <div class="design-row" style="margin-top:12px;">
+        <span class="design-label">Opacity</span>
+        <div class="range-wrap">
+          <input type="range" id="bg-opacity" min="0" max="100" value="15" oninput="updateBgOpacity(this.value)">
+          <input type="text" class="opacity-input" id="bg-opacity-val" value="15" oninput="syncOpacityInput(this.value)">
+          <span class="spacing-unit">%</span>
+        </div>
+      </div>
+      <div class="design-row">
+        <span class="design-label">Size</span>
+        <select class="select-control" id="bg-size" onchange="updateBgSize(this.value)">
+          <option value="cover">Cover</option>
+          <option value="contain">Contain</option>
+          <option value="100% 100%">Stretch</option>
+          <option value="auto">Original</option>
+        </select>
+      </div>
+      <div class="design-row">
+        <span class="design-label">Position</span>
+        <select class="select-control" id="bg-pos" onchange="updateBgPos(this.value)">
+          <option value="center">Center</option>
+          <option value="top">Top</option>
+          <option value="bottom">Bottom</option>
+          <option value="left">Left</option>
+          <option value="right">Right</option>
+          <option value="top left">Top Left</option>
+          <option value="top right">Top Right</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Paper Spacing -->
+    <div class="design-section">
+      <div class="design-section-title">Paper Padding</div>
+      <div class="design-row">
+        <span class="design-label">Overall padding</span>
+        <div class="design-control">
+          <input type="number" class="spacing-input" value="36" min="0" max="100" oninput="setSP('--sp-paper-pad',this.value,'px')">
+          <span class="spacing-unit">px</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section Spacing -->
+    <div class="design-section">
+      <div class="design-section-title">Section Spacing</div>
+      <div class="design-row">
+        <span class="design-label">Header → Title bar</span>
+        <div class="design-control">
+          <input type="number" class="spacing-input" value="16" min="0" max="100" oninput="setSP('--sp-titlebar-mv',this.value,'px')">
+          <span class="spacing-unit">px</span>
+        </div>
+      </div>
+      <div class="design-row">
+        <span class="design-label">Header bottom gap</span>
+        <div class="design-control">
+          <input type="number" class="spacing-input" value="20" min="0" max="100" oninput="setSP('--sp-header-mb',this.value,'px')">
+          <span class="spacing-unit">px</span>
+        </div>
+      </div>
+      <div class="design-row">
+        <span class="design-label">Meta block bottom</span>
+        <div class="design-control">
+          <input type="number" class="spacing-input" value="20" min="0" max="100" oninput="setSP('--sp-meta-mb',this.value,'px')">
+          <span class="spacing-unit">px</span>
+        </div>
+      </div>
+      <div class="design-row">
+        <span class="design-label">Table margin</span>
+        <div class="design-control">
+          <input type="number" class="spacing-input" value="16" min="0" max="100" oninput="setSP('--sp-table-mv',this.value,'px')">
+          <span class="spacing-unit">px</span>
+        </div>
+      </div>
+      <div class="design-row">
+        <span class="design-label">Table row padding</span>
+        <div class="design-control">
+          <input type="number" class="spacing-input" value="9" min="0" max="50" oninput="setSP('--sp-table-row',this.value,'px')">
+          <span class="spacing-unit">px</span>
+        </div>
+      </div>
+      <div class="design-row">
+        <span class="design-label">Total margin top</span>
+        <div class="design-control">
+          <input type="number" class="spacing-input" value="8" min="0" max="80" oninput="setSP('--sp-total-mt',this.value,'px')">
+          <span class="spacing-unit">px</span>
+        </div>
+      </div>
+      <div class="design-row">
+        <span class="design-label">Banking margin top</span>
+        <div class="design-control">
+          <input type="number" class="spacing-input" value="24" min="0" max="100" oninput="setSP('--sp-banking-mt',this.value,'px')">
+          <span class="spacing-unit">px</span>
+        </div>
+      </div>
+      <div class="design-row">
+        <span class="design-label">Footer margin top</span>
+        <div class="design-control">
+          <input type="number" class="spacing-input" value="24" min="0" max="100" oninput="setSP('--sp-footer-mt',this.value,'px')">
+          <span class="spacing-unit">px</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bill To Field Spacing -->
+    <div class="design-section">
+      <div class="design-section-title">Bill To Fields (extra top gap)</div>
+      <div class="design-row">
+        <span class="design-label">Name field</span>
+        <div class="design-control">
+          <input type="number" class="spacing-input" value="0" min="0" max="60" oninput="setSP('--sp-name-mt',this.value,'px')">
+          <span class="spacing-unit">px</span>
+        </div>
+      </div>
+      <div class="design-row">
+        <span class="design-label">Address field</span>
+        <div class="design-control">
+          <input type="number" class="spacing-input" value="0" min="0" max="60" oninput="setSP('--sp-address-mt',this.value,'px')">
+          <span class="spacing-unit">px</span>
+        </div>
+      </div>
+      <div class="design-row">
+        <span class="design-label">Mobile field</span>
+        <div class="design-control">
+          <input type="number" class="spacing-input" value="0" min="0" max="60" oninput="setSP('--sp-mobile-mt',this.value,'px')">
+          <span class="spacing-unit">px</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Shipping Field Spacing -->
+    <div class="design-section">
+      <div class="design-section-title">Shipping Fields (extra top gap)</div>
+      <div class="design-row">
+        <span class="design-label">Shipping Mark</span>
+        <div class="design-control">
+          <input type="number" class="spacing-input" value="0" min="0" max="60" oninput="setSP('--sp-shipmark-mt',this.value,'px')">
+          <span class="spacing-unit">px</span>
+        </div>
+      </div>
+      <div class="design-row">
+        <span class="design-label">Shipping No</span>
+        <div class="design-control">
+          <input type="number" class="spacing-input" value="0" min="0" max="60" oninput="setSP('--sp-shipno-mt',this.value,'px')">
+          <span class="spacing-unit">px</span>
+        </div>
+      </div>
+      <div class="design-row">
+        <span class="design-label">Tracking No</span>
+        <div class="design-control">
+          <input type="number" class="spacing-input" value="0" min="0" max="60" oninput="setSP('--sp-trackno-mt',this.value,'px')">
+          <span class="spacing-unit">px</span>
+        </div>
+      </div>
+    </div>
+
+    <button class="btn btn-gold" style="width:100%;margin-top:4px;" onclick="resetSpacing()">↩ Reset All Spacing</button>
+  </div>
+
+  <!-- INVOICE PREVIEW -->
+  <div class="modal-inner">
+    <div class="modal-header">
+      <h3>Invoice Preview</h3>
+      <div class="actions">
+        <button class="btn btn-gold" id="btn-print" style="padding:7px 16px;font-size:12px;width:auto;">🖨 Print / PDF</button>
+        <button class="btn-close" id="btn-close-modal">✕</button>
+      </div>
+    </div>
+    <div class="modal-body">
+      <div id="invoice-paper">
+        <div id="inv-bg-layer"></div>
+        <div class="inv-watermark">NORTHERN<br>LOGISTICS<br>INTERNATIONAL</div>
+
+        <div class="inv-header">
+          <div class="inv-logo-area">
+            <div class="inv-logo-icon">N</div>
+            <div>
+              <div class="inv-company-name">NORTHERN<span>LOGISTICS INTERNATIONAL</span></div>
+            </div>
+          </div>
+          <div class="inv-contact">
+            Northern Logistics International<br>
+            <strong>Phone : 01978755135</strong><br>
+            Whatsapp : 01978755135<br>
+            Wechat : NorthernLogistics<br>
+            Mail : info@northernlogistics.com
+          </div>
+        </div>
+
+        <div class="inv-title-bar">INVOICE</div>
+
+        <div class="inv-meta">
+          <div>
+            <div class="inv-meta-left-title">Bill to</div>
+            <div class="inv-field" id="inv-field-name"><strong>Name :</strong><span id="inv-name"></span></div>
+            <div class="inv-field" id="inv-field-address"><strong>Address :</strong><span id="inv-address"></span></div>
+            <div class="inv-field" id="inv-field-mobile"><strong>Mobile :</strong><span id="inv-mobile"></span></div>
+          </div>
+          <div class="inv-meta-right">
+            <div>Date : <span id="inv-date"></span></div>
+            <div>Page : 1-1</div>
+            <div style="margin-top:12px;">
+              <div class="inv-field" id="inv-field-shipmark"><strong>Shipping Mark :</strong><span id="inv-ship-mark"></span></div>
+              <div class="inv-field" id="inv-field-shipno"><strong>Shipping No :</strong><span id="inv-ship-no"></span></div>
+              <div class="inv-field" id="inv-field-trackno"><strong>Tracking No :</strong><span id="inv-track-no"></span></div>
+            </div>
+          </div>
+        </div>
+
+        <table class="inv-table">
+          <thead>
+            <tr>
+              <th style="width:40px">No.</th>
+              <th>Description</th>
+              <th>Weight/Unit</th>
+              <th></th>
+              <th>Cost</th>
+              <th>Total</th>
+            </tr>
+          </thead>
+          <tbody id="inv-products"></tbody>
+        </table>
+
+        <div class="inv-total-row">
+          <div class="inv-total-box">Total : BDT <span id="inv-grand-total"></span></div>
+        </div>
+
+        <div class="inv-banking">
+          <strong>Banking Details</strong><br>
+          <strong>Meghna Bank PLC</strong><br>
+          JAYEDUR RAHMAN NIROB<br>
+          <strong>AC No :</strong> 010212300001825<br>
+          <strong>Routing No :</strong> 275260433<br>
+          Shah Mukhdum Sub Branch, Uttara, Dhaka North
+        </div>
+
+        <div class="inv-footer">
+          <div class="inv-socials">
+            <div class="inv-social-icon">f</div>
+            <div class="inv-social-icon" style="background:#e4405f">@</div>
+            <div class="inv-social-icon" style="background:#25d366">w</div>
+            <div class="inv-social-icon" style="background:#0077b5">in</div>
+          </div>
+          <div class="inv-footer-logo">NORTHERN LOGISTICS INTERNATIONAL<span>YOUR TRUSTED PARTNER</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+(function(){
+  var sheetRows = [];
+  var selectedRows = [];
+
+  /* ── Boot ── */
+  function boot(){
+    g('btn-load').addEventListener('click', loadSheet);
+    g('btn-parse-csv').addEventListener('click', parsePastedCSV);
+    g('btn-add-row').addEventListener('click', addManualRow);
+    g('btn-clear-rows').addEventListener('click', function(){ sheetRows=[]; renderTable(); toast('All rows cleared'); });
+    g('btn-select-all').addEventListener('click', selectAll);
+    g('btn-clear').addEventListener('click', clearSel);
+    g('btn-generate').addEventListener('click', generateInvoice);
+    g('btn-print').addEventListener('click', function(){ window.print(); });
+    g('btn-close-modal').addEventListener('click', closeModal);
+    g('check-all').addEventListener('change', function(){ toggleAll(this.checked); });
+    g('invoice-modal').addEventListener('click', function(e){ if(e.target===this) closeModal(); });
+    g('sheet-url').addEventListener('keydown', function(e){ if(e.key==='Enter') loadSheet(); });
+
+    // Background image
+    g('bg-file-input').addEventListener('change', function(){
+      var file = this.files[0];
+      if(!file) return;
+      var reader = new FileReader();
+      reader.onload = function(e){ applyBgImage(e.target.result); };
+      reader.readAsDataURL(file);
+    });
+
+    // Drag and drop
+    var dz = g('bg-drop-zone');
+    dz.addEventListener('dragover', function(e){ e.preventDefault(); dz.style.borderColor='var(--gold)'; });
+    dz.addEventListener('dragleave', function(){ dz.style.borderColor=''; });
+    dz.addEventListener('drop', function(e){
+      e.preventDefault(); dz.style.borderColor='';
+      var file = e.dataTransfer.files[0];
+      if(!file || !file.type.startsWith('image/')) return;
+      var reader = new FileReader();
+      reader.onload = function(ev){ applyBgImage(ev.target.result); };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+
+  /* ── Helpers ── */
+  function g(id){ return document.getElementById(id); }
+  function esc(s){ if(!s)return''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  function setText(id,v){ var el=g(id); if(el) el.textContent=v||''; }
+  var toastTimer;
+  function toast(msg){ var t=g('toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(toastTimer); toastTimer=setTimeout(function(){ t.classList.remove('show'); },3500); }
+  function setStatus(cls,msg){ g('status-dot').className='status-dot'+(cls?' '+cls:''); g('status-text').textContent=msg; }
+  function setProgress(pct){ g('progress-fill').style.width=pct+'%'; }
+
+  /* ── Tab switching ── */
+  window.switchTab = function(tab){
+    ['sheet','paste','manual'].forEach(function(t){
+      g('tab-'+t).classList.toggle('active',t===tab);
+      g('panel-'+t).classList.toggle('active',t===tab);
+    });
+  };
+
+  /* ── Background image ── */
+  function applyBgImage(src){
+    var layer = g('inv-bg-layer');
+    layer.style.backgroundImage = 'url('+src+')';
+    layer.style.backgroundSize = g('bg-size').value;
+    layer.style.backgroundPosition = g('bg-pos').value;
+    layer.style.display = 'block';
+    var preview = g('bg-preview');
+    preview.src = src;
+    preview.style.display = 'block';
+    toast('✓ Background image applied');
+  }
+
+  window.applyBgUrl = function(){
+    var url = g('bg-url-input').value.trim();
+    if(!url){ toast('Paste an image URL first'); return; }
+    applyBgImage(url);
+  };
+
+  window.removeBg = function(){
+    var layer = g('inv-bg-layer');
+    layer.style.backgroundImage = '';
+    layer.style.display = 'none';
+    g('bg-preview').style.display = 'none';
+    g('bg-preview').src = '';
+    g('bg-url-input').value = '';
+    g('bg-file-input').value = '';
+    toast('Background image removed');
+  };
+
+  window.updateBgOpacity = function(val){
+    g('inv-bg-layer').style.opacity = val/100;
+    g('bg-opacity-val').value = val;
+  };
+
+  window.syncOpacityInput = function(val){
+    var n = Math.min(100, Math.max(0, parseInt(val)||0));
+    g('inv-bg-layer').style.opacity = n/100;
+    g('bg-opacity').value = n;
+  };
+
+  window.updateBgSize = function(val){
+    g('inv-bg-layer').style.backgroundSize = val;
+  };
+
+  window.updateBgPos = function(val){
+    g('inv-bg-layer').style.backgroundPosition = val;
+  };
+
+  /* ── Spacing controls ── */
+  window.setSP = function(varName, val, unit){
+    g('invoice-paper').style.setProperty(varName, val+unit);
+  };
+
+  window.resetSpacing = function(){
+    var paper = g('invoice-paper');
+    var defaults = {
+      '--sp-paper-pad':'36px','--sp-header-mb':'20px','--sp-titlebar-mv':'16px',
+      '--sp-meta-mb':'20px','--sp-table-mv':'16px','--sp-table-row':'9px',
+      '--sp-total-mt':'8px','--sp-banking-mt':'24px','--sp-footer-mt':'24px',
+      '--sp-name-mt':'0px','--sp-address-mt':'0px','--sp-mobile-mt':'0px',
+      '--sp-shipmark-mt':'0px','--sp-shipno-mt':'0px','--sp-trackno-mt':'0px'
+    };
+    Object.keys(defaults).forEach(function(k){ paper.style.setProperty(k, defaults[k]); });
+    // reset inputs
+    var defaultVals = [36,20,16,20,16,9,8,24,24,0,0,0,0,0,0];
+    document.querySelectorAll('#design-panel input[type=number]').forEach(function(inp,i){
+      if(defaultVals[i]!==undefined) inp.value = defaultVals[i];
+    });
+    toast('Spacing reset to defaults');
+  };
+
+  /* ── URL builder ── */
+  function extractSheetId(url){ var m=url.match(/\/spreadsheets\/d\/([a-zA-Z0-9_-]+)/); return m?m[1]:null; }
+  function extractGid(url){ var m=url.match(/[#&?]gid=(\d+)/); return m?m[1]:'0'; }
+
+  function fetchViaCsv(csvUrl){
+    return new Promise(function(resolve,reject){
+      var timer=setTimeout(function(){ reject(new Error('timeout')); },10000);
+      fetch(csvUrl).then(function(r){ clearTimeout(timer); if(!r.ok) throw new Error('HTTP '+r.status); return r.text(); })
+        .then(function(t){ if(!t||t.length<5) throw new Error('empty'); if(t.trim().startsWith('<')) throw new Error('got HTML'); resolve(t); })
+        .catch(function(e){ clearTimeout(timer); reject(e); });
+    });
+  }
+
+  function fetchViaJsonp(sheetId,gid){
+    return new Promise(function(resolve,reject){
+      var cbName='nlCb_'+Date.now();
+      var timer=setTimeout(function(){ delete window[cbName]; var s=document.getElementById('jsonp-script'); if(s)s.remove(); reject(new Error('JSONP timeout')); },12000);
+      window[cbName]=function(data){
+        clearTimeout(timer); delete window[cbName]; var s=document.getElementById('jsonp-script'); if(s)s.remove();
+        try{
+          var feed=data.feed;
+          if(!feed||!feed.entry){ reject(new Error('No data in feed')); return; }
+          var rows=[];
+          feed.entry.forEach(function(entry){ var cell=entry['gs$cell']; var r=parseInt(cell.row),c=parseInt(cell.col); if(!rows[r])rows[r]=[]; rows[r][c]=cell.$t||''; });
+          resolve(rows);
+        }catch(e){ reject(e); }
+      };
+      var url='https://spreadsheets.google.com/feeds/cells/'+sheetId+'/'+(parseInt(gid)+1)+'/public/full?alt=json-in-script&callback='+cbName;
+      var script=document.createElement('script'); script.id='jsonp-script'; script.src=url;
+      script.onerror=function(){ clearTimeout(timer); delete window[cbName]; reject(new Error('Script load failed')); };
+      document.head.appendChild(script);
+    });
+  }
+
+  async function loadSheetData(rawUrl){
+    var sheetId=extractSheetId(rawUrl); var gid=extractGid(rawUrl);
+    if(!sheetId) throw new Error('Could not find spreadsheet ID in URL');
+    var csvUrl='https://docs.google.com/spreadsheets/d/'+sheetId+'/export?format=csv&gid='+gid;
+    setStatus('yellow','Trying direct fetch...'); setProgress(20);
+    try{ var csvText=await fetchViaCsv(csvUrl); setProgress(100); return {type:'csv',data:csvText}; }catch(e){ console.warn('CSV failed:',e.message); }
+    setStatus('yellow','Trying JSON feed...'); setProgress(50);
+    try{ var jsonRows=await fetchViaJsonp(sheetId,gid); setProgress(100); return {type:'json',data:jsonRows}; }catch(e){ throw new Error('Could not load sheet. Make sure it is shared as "Anyone with the link". '+e.message); }
+  }
+
+  async function loadSheet(){
+    var raw=g('sheet-url').value.trim();
+    if(!raw){ toast('Paste a Google Sheet URL first'); return; }
+    setStatus('','Connecting...'); setProgress(5);
+    var btn=g('btn-load'); btn.disabled=true; btn.textContent='Loading...';
+    try{
+      var result=await loadSheetData(raw);
+      if(result.type==='csv') parseCSV(result.data);
+      else parseJsonRows(result.data);
+      setStatus('green','Connected — '+sheetRows.length+' rows loaded');
+      toast('✓ Loaded '+sheetRows.length+' rows');
+    }catch(e){ setStatus('red','Failed'); setProgress(0); toast('❌ '+e.message); }
+    finally{ btn.disabled=false; btn.textContent='↻ Load Sheet Data'; }
+  }
+
+  /* ── Parse JSON rows ── */
+  function parseJsonRows(rawRows){
+    var POSITIONAL=['ShippingNumber','TrackingNumber','ShippingMark','Date','Name','Address','Mobile','Description','Quantity','Weight','Cost','Total'];
+    var firstRow=rawRows[1]||[];
+    var firstVals=firstRow.slice(1);
+    var looksLikeHeaders=firstVals.some(function(v){ return v&&isNaN(v)&&v.length>1; });
+    var headers=looksLikeHeaders?firstVals:POSITIONAL;
+    var dataStart=looksLikeHeaders?2:1;
+    sheetRows=[];
+    for(var r=dataStart;r<rawRows.length;r++){
+      if(!rawRows[r]) continue;
+      var vals=rawRows[r]; var row={};
+      for(var c=1;c<vals.length;c++){ var h=headers[c-1]||('col'+c); row[h]=(vals[c]||'').trim(); }
+      if(Object.values(row).some(function(v){ return v; })) sheetRows.push(row);
+    }
+    renderTable();
+  }
+
+  /* ── Parse CSV ── */
+  function parsePastedCSV(){ var text=g('csv-paste').value.trim(); if(!text){ toast('Paste some CSV data first'); return; } parseCSV(text); if(sheetRows.length) toast('✓ Loaded '+sheetRows.length+' rows'); }
+
+  var POSITIONAL_HEADERS=['ShippingNumber','TrackingNumber','ShippingMark','Date','Name','Address','Mobile','Description','Quantity','Weight','Cost','Total'];
+
+  function parseCSV(text){
+    text=text.replace(/\r\n/g,'\n').replace(/\r/g,'\n');
+    var lines=text.trim().split('\n'); if(!lines.length){ toast('No data found'); return; }
+    var firstLine=splitLine(lines[0]).map(function(h){ return h.replace(/^"|"$/g,'').trim(); });
+    var allBlank=firstLine.every(function(h){ return h===''; });
+    var headers=allBlank?POSITIONAL_HEADERS:firstLine;
+    var dataLines=allBlank?lines:lines.slice(1);
+    sheetRows=dataLines.filter(function(l){ return l.trim(); }).map(function(line){
+      var vals=splitLine(line); var row={};
+      headers.forEach(function(h,i){ if(h) row[h]=(vals[i]||'').replace(/^"|"$/g,'').trim(); });
+      return row;
+    });
+    renderTable();
+  }
+
+  function splitLine(line){
+    var result=[],cur='',inQ=false;
+    for(var i=0;i<line.length;i++){
+      var ch=line[i];
+      if(ch==='"'){ if(inQ&&line[i+1]==='"'){ cur+='"'; i++; } else { inQ=!inQ; } }
+      else if(ch===','&&!inQ){ result.push(cur); cur=''; }
+      else { cur+=ch; }
+    }
+    result.push(cur); return result;
+  }
+
+  /* ── Manual row ── */
+  function addManualRow(){
+    var row={}; var fields=document.querySelectorAll('.mf'); var hasData=false;
+    fields.forEach(function(f){ var val=f.value.trim(); row[f.getAttribute('data-key')]=val; if(val) hasData=true; });
+    if(!hasData){ toast('Fill in at least one field'); return; }
+    if(!row['Name']){ toast('Name is required'); return; }
+    sheetRows.push(row); renderTable();
+    fields.forEach(function(f){ f.value=''; });
+    toast('✓ Row added ('+sheetRows.length+' total)');
+  }
+
+  /* ── Detect columns ── */
+  function detectCols(row){
+    var keys=Object.keys(row);
+    var strip=function(s){ return String(s).toLowerCase().replace(/[\s_\-\.]/g,''); };
+    function find(){
+      var names=Array.prototype.slice.call(arguments);
+      var found=keys.find(function(k){ return names.some(function(n){ return strip(k)===strip(n); }); });
+      if(found) return found;
+      found=keys.find(function(k){ return names.some(function(n){ return strip(k).indexOf(strip(n))>=0; }); });
+      if(found) return found;
+      found=keys.find(function(k){ return names.some(function(n){ return strip(n).indexOf(strip(k))>=0; }); });
+      return found||null;
+    }
+    return {
+      Name:find('Name','client','customer','fullname'),
+      Address:find('Address','addr','location','area'),
+      Mobile:find('Mobile','phone','tel','contact'),
+      ShippingMark:find('ShippingMark','Shipping Mark','mark','shipmark'),
+      ShippingNumber:find('ShippingNumber','Shipping Number','shippingno','shipno'),
+      TrackingNumber:find('TrackingNumber','Tracking Number','trackingno','trackno'),
+      Description:find('Description','Product Name','desc','product','item','goods'),
+      Weight:find('Weight','wt','kg','weights'),
+      Unit:find('Quantity','Pcs','pcs','Unit','qty','quantity'),
+      Cost:find('Cost','Rate','rate','price','costkg'),
+      Total:find('Total','amount','sum','totalcost'),
+      Date:find('Date','dt','shipdate','invoicedate'),
+    };
+  }
+
+  /* ── Render Table ── */
+  function renderTable(){
+    var body=g('table-body');
+    if(!sheetRows.length){
+      body.innerHTML='<tr><td colspan="11"><div class="empty-state"><div class="big-icon">📭</div><p>No data yet.</p></div></td></tr>';
+      g('row-count-label').textContent='No data loaded'; return;
+    }
+    var col=detectCols(sheetRows[0]);
+    g('row-count-label').textContent=sheetRows.length+' rows  •  Select rows to merge into one invoice';
+    var html='';
+    for(var i=0;i<sheetRows.length;i++){
+      var r=sheetRows[i];
+      html+='<tr data-idx="'+i+'">'
+        +'<td><input type="checkbox" class="row-chk" data-idx="'+i+'"></td>'
+        +'<td><strong>'+esc(r[col.Name]||'—')+'</strong></td>'
+        +'<td>'+esc(r[col.Address]||'—')+'</td>'
+        +'<td>'+esc(r[col.Mobile]||'—')+'</td>'
+        +'<td>'+esc(r[col.ShippingMark]||'—')+'</td>'
+        +'<td>'+esc(r[col.Description]||'—')+'</td>'
+        +'<td>'+esc(r[col.Weight]||'—')+'</td>'
+        +'<td>'+esc(r[col.Unit]||'—')+'</td>'
+        +'<td>'+esc(r[col.Cost]||'—')+'</td>'
+        +'<td><span class="tag tag-amount">'+esc(r[col.Total]||'—')+'</span></td>'
+        +'<td><span class="tag tag-date">'+esc(r[col.Date]||'—')+'</span></td>'
+        +'</tr>';
+    }
+    body.innerHTML=html;
+    body.querySelectorAll('tr').forEach(function(tr){
+      tr.addEventListener('click',function(e){ if(e.target.tagName==='INPUT') return; var chk=tr.querySelector('.row-chk'); if(chk){ chk.checked=!chk.checked; updateSel(); } });
+    });
+    body.querySelectorAll('.row-chk').forEach(function(chk){ chk.addEventListener('change',updateSel); });
+  }
+
+  /* ── Selection ── */
+  function updateSel(){
+    selectedRows=[];
+    document.querySelectorAll('.row-chk').forEach(function(chk){
+      var idx=parseInt(chk.getAttribute('data-idx'));
+      var tr=chk.closest?chk.closest('tr'):chk.parentNode.parentNode;
+      if(chk.checked){ selectedRows.push(sheetRows[idx]); tr.classList.add('selected'); }
+      else { tr.classList.remove('selected'); }
+    });
+    var badge=g('sel-badge');
+    badge.style.display=selectedRows.length?'inline-block':'none';
+    badge.textContent=selectedRows.length+' selected';
+  }
+  function toggleAll(checked){ document.querySelectorAll('.row-chk').forEach(function(c){ c.checked=checked; }); updateSel(); }
+  function selectAll(){ g('check-all').checked=true; toggleAll(true); }
+  function clearSel(){ g('check-all').checked=false; toggleAll(false); }
+
+  /* ── Generate Invoice ── */
+  function generateInvoice(){
+    if(!selectedRows.length){ toast('Select at least one row first'); return; }
+    var col=detectCols(sheetRows[0]);
+    var first=selectedRows[0];
+    setText('inv-name', first[col.Name]);
+    setText('inv-address', first[col.Address]);
+    setText('inv-mobile', first[col.Mobile]);
+    setText('inv-ship-mark', first[col.ShippingMark]);
+    setText('inv-ship-no', first[col.ShippingNumber]);
+    setText('inv-track-no', first[col.TrackingNumber]);
+    var dateVal=first[col.Date];
+    if(!dateVal||dateVal==='—') dateVal=new Date().toLocaleDateString('en-GB');
+    setText('inv-date', dateVal);
+    var grand=0, html='';
+    for(var i=0;i<selectedRows.length;i++){
+      var r=selectedRows[i];
+      var weight=parseFloat(String(r[col.Weight]||'0').replace(/[^0-9.]/g,''))||0;
+      var cost=parseFloat(String(r[col.Cost]||'0').replace(/[^0-9.]/g,''))||0;
+      var rawTot=parseFloat(String(r[col.Total]||'0').replace(/[^0-9.]/g,''))||0;
+      var lineTotal=(weight&&cost)?(weight*cost):rawTot;
+      grand+=lineTotal;
+      html+='<tr>'
+        +'<td>'+String(i+1).padStart(2,'0')+'</td>'
+        +'<td>'+esc(r[col.Description])+'</td>'
+        +'<td>'+esc(r[col.Weight])+' '+esc(r[col.Unit])+'</td>'
+        +'<td>X</td>'
+        +'<td>'+esc(r[col.Cost])+' / KG</td>'
+        +'<td>'+(lineTotal?lineTotal.toLocaleString('en-IN',{minimumFractionDigits:2}):'—')+'</td>'
+        +'</tr>';
+    }
+    g('inv-products').innerHTML=html;
+    setText('inv-grand-total', grand?grand.toLocaleString('en-IN',{minimumFractionDigits:2}):'0.00');
+    g('invoice-modal').classList.add('open');
+  }
+
+  function closeModal(){ g('invoice-modal').classList.remove('open'); }
+
+})();
+</script>
+</body>
+</html>

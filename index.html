@@ -38,6 +38,8 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 .status-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#888;margin-right:5px;vertical-align:middle;flex-shrink:0;}
 .status-dot.green{background:#4caf50;}.status-dot.red{background:var(--red);}.status-dot.yellow{background:#f59e0b;}
 #conn-status{font-size:10px;color:rgba(255,255,255,.6);display:flex;align-items:flex-start;}
+.saved-badge{font-size:9px;background:rgba(201,168,76,.25);color:var(--gold);border-radius:4px;padding:2px 6px;margin-left:6px;display:none;}
+.saved-badge.show{display:inline-block;}
 .tab-bar{display:flex;gap:3px;background:rgba(0,0,0,.2);border-radius:7px;padding:3px;}
 .tab-btn{flex:1;background:transparent;border:none;color:rgba(255,255,255,.5);font-family:'Plus Jakarta Sans',sans-serif;font-size:9px;font-weight:600;padding:5px 2px;border-radius:5px;cursor:pointer;transition:all .2s;}
 .tab-btn.active{background:rgba(255,255,255,.15);color:#fff;}
@@ -73,8 +75,8 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 #invoice-modal.open{display:flex;}
 
 /* ── DESIGN PANEL ── */
-#design-panel{background:var(--purple);border-radius:12px;width:280px;flex-shrink:0;max-height:96vh;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px;align-self:flex-start;position:sticky;top:0;}
-#design-panel h4{font-family:'DM Serif Display',serif;color:#fff;font-size:14px;}
+#design-panel{background:var(--purple);border-radius:12px;width:240px;flex-shrink:0;max-height:96vh;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;align-self:flex-start;position:sticky;top:0;}
+#design-panel h4{font-family:'DM Serif Display',serif;color:#fff;font-size:14px;margin-bottom:2px;}
 .design-section{background:rgba(255,255,255,.07);border-radius:9px;padding:11px;}
 .design-section-title{font-size:8px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.45);margin-bottom:9px;}
 .design-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;gap:5px;}
@@ -85,8 +87,8 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 .spacing-input:focus{border-color:var(--gold);}
 .spacing-unit{font-size:9px;color:rgba(255,255,255,.4);}
 .range-wrap{display:flex;align-items:center;gap:4px;}
-.range-wrap input[type=range]{width:65px;accent-color:var(--gold);}
-.opacity-input{width:40px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);border-radius:5px;color:#fff;padding:4px 5px;font-size:10px;outline:none;text-align:center;}
+.range-wrap input[type=range]{width:60px;accent-color:var(--gold);}
+.opacity-input{width:38px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);border-radius:5px;color:#fff;padding:4px 5px;font-size:10px;outline:none;text-align:center;}
 .bg-upload-area{border:2px dashed rgba(255,255,255,.25);border-radius:7px;padding:10px;text-align:center;cursor:pointer;transition:border-color .2s;margin-bottom:7px;}
 .bg-upload-area:hover{border-color:var(--gold);}
 .bg-upload-area p{font-size:9px;color:rgba(255,255,255,.5);margin-top:3px;}
@@ -97,17 +99,19 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 .bg-small-btn:hover{background:rgba(255,255,255,.22);}
 .bg-small-btn.danger{background:rgba(208,2,27,.3);border-color:rgba(208,2,27,.4);}
 .bg-small-btn.danger:hover{background:rgba(208,2,27,.5);}
-.bg-preview{width:100%;height:46px;border-radius:5px;object-fit:cover;margin-top:7px;display:none;border:1px solid rgba(255,255,255,.15);}
+.bg-preview{width:100%;height:40px;border-radius:5px;object-fit:cover;margin-top:7px;display:none;border:1px solid rgba(255,255,255,.15);}
 .select-control{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);border-radius:5px;color:#fff;padding:4px 6px;font-size:9px;outline:none;}
 .select-control option{background:#2d1b69;}
+
 /* Toggle switch */
-.toggle-row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;}
-.toggle-row:last-child{margin-bottom:0;}
-.toggle-label{font-size:10px;color:rgba(255,255,255,.75);flex:1;}
-.toggle{position:relative;width:36px;height:20px;flex-shrink:0;}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.08);}
+.toggle-row:last-child{border-bottom:none;padding-bottom:0;}
+.toggle-row:first-child{padding-top:0;}
+.toggle-label{font-size:10px;color:rgba(255,255,255,.8);flex:1;}
+.toggle{position:relative;width:34px;height:18px;flex-shrink:0;}
 .toggle input{opacity:0;width:0;height:0;}
 .toggle-slider{position:absolute;inset:0;background:rgba(255,255,255,.2);border-radius:20px;transition:.3s;cursor:pointer;}
-.toggle-slider:before{content:'';position:absolute;width:14px;height:14px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.3s;}
+.toggle-slider:before{content:'';position:absolute;width:12px;height:12px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.3s;}
 .toggle input:checked+.toggle-slider{background:var(--gold);}
 .toggle input:checked+.toggle-slider:before{transform:translateX(16px);}
 
@@ -121,90 +125,35 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 .modal-body{overflow-y:auto;padding:18px;max-height:88vh;}
 
 /* ══════════════════════════════════════
-   INVOICE PAPER — A4: 794px × 1123px
+   INVOICE PAPER — A4: 794×1123px
    ══════════════════════════════════════ */
 #invoice-paper{
   background:#fff;
-  width:794px;
-  min-height:1123px;
-  display:flex;
-  flex-direction:column;
+  width:794px;min-height:1123px;
+  display:flex;flex-direction:column;
   margin:0 auto;
-  font-family:Arial,sans-serif;
-  font-size:12px;
+  font-family:Arial,sans-serif;font-size:12px;
   box-shadow:0 4px 24px rgba(0,0,0,.14);
-  color:#1a1a1a;
-  position:relative;
-  overflow:hidden;
-
-  /* Force browser to print background colors */
-  -webkit-print-color-adjust:exact;
-  print-color-adjust:exact;
-  color-adjust:exact;
-
-  --sp-pad-h:32px;
-  --sp-pad-v:28px;
-  --sp-header-mb:14px;
-  --sp-titlebar-mv:10px;
-  --sp-meta-mb:12px;
-  --sp-field-gap:4px;
-  --sp-table-mv:10px;
-  --sp-table-row:7px;
-  --sp-total-mt:6px;
-  --sp-banking-mt:14px;
-  --sp-footer-mt:14px;
-  --sp-name-mt:0px;
-  --sp-address-mt:0px;
-  --sp-mobile-mt:0px;
-  --sp-shipmark-mt:0px;
-  --sp-shipno-mt:0px;
-  --sp-trackno-mt:0px;
-
+  color:#1a1a1a;position:relative;overflow:hidden;
+  -webkit-print-color-adjust:exact;print-color-adjust:exact;color-adjust:exact;
+  --sp-pad-h:32px;--sp-pad-v:28px;
+  --sp-header-mb:14px;--sp-titlebar-mv:10px;--sp-meta-mb:12px;
+  --sp-field-gap:4px;--sp-table-mv:10px;--sp-table-row:7px;
+  --sp-total-mt:6px;--sp-banking-mt:14px;--sp-footer-mt:14px;
+  --sp-name-mt:0px;--sp-address-mt:0px;--sp-mobile-mt:0px;
+  --sp-shipmark-mt:0px;--sp-shipno-mt:0px;--sp-trackno-mt:0px;
   padding:var(--sp-pad-v) var(--sp-pad-h);
 }
-
-/* BG image layer */
-#inv-bg-layer{
-  position:absolute;inset:0;z-index:0;
-  background-size:cover;background-position:center;background-repeat:no-repeat;
-  pointer-events:none;opacity:0.15;display:none;
-  -webkit-print-color-adjust:exact;print-color-adjust:exact;
-}
-
-/* Watermark */
-.inv-watermark{
-  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
-  opacity:.045;pointer-events:none;
-  font-size:36px;font-weight:900;text-transform:uppercase;
-  color:#2d1b69;z-index:0;text-align:center;line-height:1.3;white-space:nowrap;
-  -webkit-print-color-adjust:exact;print-color-adjust:exact;
-}
-
+#inv-bg-layer{position:absolute;inset:0;z-index:0;background-size:cover;background-position:center;background-repeat:no-repeat;pointer-events:none;opacity:0.15;display:none;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+.inv-watermark{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);opacity:.045;pointer-events:none;font-size:36px;font-weight:900;text-transform:uppercase;color:#2d1b69;z-index:0;text-align:center;line-height:1.3;white-space:nowrap;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
 #invoice-paper>*:not(#inv-bg-layer):not(.inv-watermark){position:relative;z-index:1;}
-
-/* Header */
 .inv-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:var(--sp-header-mb);}
 .inv-logo-area{display:flex;align-items:center;gap:9px;}
-.inv-logo-icon{
-  width:52px;height:52px;border-radius:50%;
-  background:#d0021b; /* fallback solid — also set inline for print */
-  display:flex;align-items:center;justify-content:center;
-  color:#fff;font-weight:900;font-size:19px;font-style:italic;flex-shrink:0;
-  -webkit-print-color-adjust:exact;print-color-adjust:exact;
-}
+.inv-logo-icon{width:52px;height:52px;border-radius:50%;background:#d0021b;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:19px;font-style:italic;flex-shrink:0;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
 .inv-company-name{font-size:19px;font-weight:900;color:#1a1a1a;letter-spacing:1px;}
 .inv-company-name span{font-size:10px;letter-spacing:4px;color:#888;display:block;font-weight:400;}
 .inv-contact{text-align:right;font-size:11px;line-height:1.75;}
-
-/* Title bar */
-.inv-title-bar{
-  background:#2d1b69;color:#fff;text-align:center;
-  font-size:19px;font-weight:700;letter-spacing:6px;padding:8px;
-  margin:var(--sp-titlebar-mv) 0;border-radius:2px;
-  -webkit-print-color-adjust:exact;print-color-adjust:exact;
-}
-
-/* Meta */
+.inv-title-bar{background:#2d1b69;color:#fff;text-align:center;font-size:19px;font-weight:700;letter-spacing:6px;padding:8px;margin:var(--sp-titlebar-mv) 0;border-radius:2px;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
 .inv-meta{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:var(--sp-meta-mb);flex-wrap:wrap;gap:10px;}
 .inv-meta-left-title{font-size:12px;font-weight:700;border-bottom:2px solid #1a1a1a;padding-bottom:2px;margin-bottom:8px;}
 .inv-field{display:flex;gap:5px;font-size:11px;margin-bottom:var(--sp-field-gap);}
@@ -213,51 +162,25 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 .inv-meta-right{text-align:right;font-size:11px;line-height:1.85;}
 .inv-meta-right .inv-field{justify-content:flex-end;}
 .inv-meta-right .inv-field span{text-align:left;min-width:105px;}
-
-#inv-field-name{margin-top:var(--sp-name-mt);}
-#inv-field-address{margin-top:var(--sp-address-mt);}
-#inv-field-mobile{margin-top:var(--sp-mobile-mt);}
-#inv-field-shipmark{margin-top:var(--sp-shipmark-mt);}
-#inv-field-shipno{margin-top:var(--sp-shipno-mt);}
-#inv-field-trackno{margin-top:var(--sp-trackno-mt);}
-
-/* Table */
+#inv-field-name{margin-top:var(--sp-name-mt);}#inv-field-address{margin-top:var(--sp-address-mt);}#inv-field-mobile{margin-top:var(--sp-mobile-mt);}
+#inv-field-shipmark{margin-top:var(--sp-shipmark-mt);}#inv-field-shipno{margin-top:var(--sp-shipno-mt);}#inv-field-trackno{margin-top:var(--sp-trackno-mt);}
 .inv-table{width:100%;border-collapse:collapse;margin:var(--sp-table-mv) 0;}
-.inv-table thead th{
-  background:#2d1b69;color:#fff;
-  padding:8px 10px;font-size:11px;font-weight:600;text-align:left;
-  -webkit-print-color-adjust:exact;print-color-adjust:exact;
-}
+.inv-table thead th{background:#2d1b69;color:#fff;padding:8px 10px;font-size:11px;font-weight:600;text-align:left;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
 .inv-table thead th:last-child{text-align:right;}
 .inv-table tbody td{padding:var(--sp-table-row) 10px;font-size:11px;border-bottom:1px solid #eee;}
 .inv-table tbody td:last-child{text-align:right;}
 .inv-table tbody tr:nth-child(even){background:#fafafa;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
-
-/* Total */
 .inv-total-row{display:flex;justify-content:flex-end;margin-top:var(--sp-total-mt);border-top:2px solid #1a1a1a;padding-top:8px;}
 .inv-total-box{font-size:13px;font-weight:700;}
 .inv-total-box span{margin-left:12px;color:#d0021b;font-size:15px;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
-
-/* Banking */
 .inv-banking{margin-top:var(--sp-banking-mt);border-top:1px solid #ddd;padding-top:11px;font-size:11px;line-height:1.75;}
-
-/* Footer */
 .inv-footer-wrap{margin-top:auto;padding-top:var(--sp-footer-mt);}
 .inv-footer{display:flex;justify-content:space-between;align-items:center;border-top:2px solid #2d1b69;padding-top:9px;flex-wrap:wrap;gap:9px;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
 .inv-footer-logo{font-size:15px;font-weight:900;color:#2d1b69;letter-spacing:1px;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
 .inv-footer-logo span{display:block;font-size:9px;letter-spacing:3px;color:#c9a84c;font-weight:600;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
 .inv-socials{display:flex;gap:6px;}
-.inv-social-icon{
-  width:24px;height:24px;border-radius:50%;
-  background:#ff5722;color:#fff;
-  display:flex;align-items:center;justify-content:center;
-  font-size:10px;font-weight:700;
-  -webkit-print-color-adjust:exact;print-color-adjust:exact;
-}
+.inv-social-icon{width:24px;height:24px;border-radius:50%;background:#ff5722;color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
 
-/* ══════════════════════
-   PRINT STYLES
-   ══════════════════════ */
 @media print{
   @page{size:A4 portrait;margin:0mm;}
   html,body{width:210mm;height:297mm;overflow:hidden;background:#fff;}
@@ -267,24 +190,8 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
   .modal-inner{display:block!important;box-shadow:none!important;border-radius:0!important;background:none!important;}
   .modal-header{display:none!important;}
   .modal-body{padding:0!important;max-height:none!important;overflow:visible!important;}
-  #invoice-paper{
-    width:210mm!important;height:297mm!important;min-height:unset!important;
-    box-shadow:none!important;border-radius:0!important;
-    position:fixed!important;top:0!important;left:0!important;margin:0!important;
-    padding:13mm 14mm!important;
-    page-break-after:avoid!important;page-break-inside:avoid!important;
-    overflow:hidden!important;font-size:10pt!important;
-    /* CRITICAL: force all backgrounds to print */
-    -webkit-print-color-adjust:exact!important;
-    print-color-adjust:exact!important;
-    color-adjust:exact!important;
-  }
-  /* Every element that has a background must also carry this flag */
-  *{
-    -webkit-print-color-adjust:exact!important;
-    print-color-adjust:exact!important;
-    color-adjust:exact!important;
-  }
+  #invoice-paper{width:210mm!important;height:297mm!important;min-height:unset!important;box-shadow:none!important;border-radius:0!important;position:fixed!important;top:0!important;left:0!important;margin:0!important;padding:13mm 14mm!important;page-break-after:avoid!important;page-break-inside:avoid!important;overflow:hidden!important;font-size:10pt!important;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;color-adjust:exact!important;}
+  *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;color-adjust:exact!important;}
 }
 </style>
 </head>
@@ -304,14 +211,21 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
       </div>
     </div>
     <div class="tab-panel active" id="panel-sheet">
-      <div class="section-label">Google Sheet URL</div>
+      <div class="section-label" style="display:flex;align-items:center;">
+        Google Sheet URL
+        <span class="saved-badge" id="saved-badge">✓ Saved</span>
+      </div>
       <div class="sheet-input-wrap">
         <input type="text" id="sheet-url" placeholder="Paste Google Sheet URL..."/>
         <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
         <button class="btn btn-gold" id="btn-load">↻ Load Sheet Data</button>
+        <button class="btn" id="btn-clear-url" style="background:rgba(255,255,255,.1);color:rgba(255,255,255,.6);padding:6px;font-size:10px;width:100%;">✕ Clear saved URL</button>
       </div>
       <div id="conn-status" style="margin-top:3px;"><span class="status-dot" id="status-dot"></span><span id="status-text">Not connected</span></div>
-      <div class="how-to"><strong>How to connect</strong><ol><li>Open your Google Sheet</li><li>Share → Anyone with the link</li><li>Paste URL &amp; click Load</li></ol></div>
+      <div class="how-to">
+        <strong>Auto-saved on load ✓</strong>
+        Your Sheet URL is saved automatically and reloaded when you reopen this page.
+      </div>
     </div>
     <div class="tab-panel" id="panel-paste">
       <div class="section-label">Paste CSV Data</div>
@@ -379,34 +293,38 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 <div id="invoice-modal">
   <!-- Design Panel -->
   <div id="design-panel">
-    <h4>🎨 Invoice Designer</h4>
+    <h4>🎨 Designer</h4>
 
-    <!-- Visibility toggles -->
+    <!-- ① VISIBILITY TOGGLES — at the very top so always visible -->
     <div class="design-section">
-      <div class="design-section-title">Show / Hide Elements</div>
+      <div class="design-section-title">Show / Hide</div>
       <div class="toggle-row">
         <span class="toggle-label">🔵 Logo circle</span>
-        <label class="toggle"><input type="checkbox" id="tog-logo" checked onchange="toggleEl('inv-logo-icon',this.checked)"><span class="toggle-slider"></span></label>
+        <label class="toggle"><input type="checkbox" id="tog-logo" checked onchange="toggleEl('inv-logo-icon','flex',this.checked)"><span class="toggle-slider"></span></label>
       </div>
       <div class="toggle-row">
-        <span class="toggle-label">📛 Watermark</span>
-        <label class="toggle"><input type="checkbox" id="tog-watermark" checked onchange="toggleEl('inv-watermark',this.checked)"><span class="toggle-slider"></span></label>
+        <span class="toggle-label">📛 Text watermark</span>
+        <label class="toggle"><input type="checkbox" id="tog-watermark" checked onchange="toggleWatermark(this.checked)"><span class="toggle-slider"></span></label>
+      </div>
+      <div class="toggle-row">
+        <span class="toggle-label">🖼 Background image</span>
+        <label class="toggle"><input type="checkbox" id="tog-bg" checked onchange="toggleBgLayer(this.checked)"><span class="toggle-slider"></span></label>
       </div>
       <div class="toggle-row">
         <span class="toggle-label">🏦 Banking details</span>
-        <label class="toggle"><input type="checkbox" id="tog-banking" checked onchange="toggleEl('inv-banking',this.checked)"><span class="toggle-slider"></span></label>
+        <label class="toggle"><input type="checkbox" id="tog-banking" checked onchange="toggleEl('inv-banking','block',this.checked)"><span class="toggle-slider"></span></label>
       </div>
       <div class="toggle-row">
         <span class="toggle-label">📱 Social icons</span>
-        <label class="toggle"><input type="checkbox" id="tog-socials" checked onchange="toggleEl('inv-socials',this.checked)"><span class="toggle-slider"></span></label>
+        <label class="toggle"><input type="checkbox" id="tog-socials" checked onchange="toggleEl('inv-socials','flex',this.checked)"><span class="toggle-slider"></span></label>
       </div>
     </div>
 
-    <!-- Background Image -->
+    <!-- ② BACKGROUND IMAGE -->
     <div class="design-section">
       <div class="design-section-title">Background Image</div>
       <div class="bg-upload-area" id="bg-drop-zone" onclick="document.getElementById('bg-file-input').click()">
-        <div style="font-size:20px;">🖼️</div><p>Click or drag &amp; drop image</p>
+        <div style="font-size:20px;">🖼️</div><p>Click or drag &amp; drop</p>
       </div>
       <input type="file" id="bg-file-input" accept="image/*" style="display:none;">
       <input type="text" id="bg-url-input" placeholder="Or paste image URL...">
@@ -439,44 +357,44 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
       </div>
     </div>
 
-    <!-- Paper padding -->
+    <!-- ③ PAPER PADDING -->
     <div class="design-section">
       <div class="design-section-title">Paper Padding</div>
-      <div class="design-row"><span class="design-label">Horizontal (L/R)</span><div class="design-control"><input type="number" class="spacing-input" value="32" min="0" max="80" oninput="setSP('--sp-pad-h',this.value,'px')"><span class="spacing-unit">px</span></div></div>
-      <div class="design-row"><span class="design-label">Vertical (T/B)</span><div class="design-control"><input type="number" class="spacing-input" value="28" min="0" max="80" oninput="setSP('--sp-pad-v',this.value,'px')"><span class="spacing-unit">px</span></div></div>
+      <div class="design-row"><span class="design-label">Horizontal</span><div class="design-control"><input type="number" class="spacing-input" value="32" min="0" max="80" oninput="setSP('--sp-pad-h',this.value,'px')"><span class="spacing-unit">px</span></div></div>
+      <div class="design-row"><span class="design-label">Vertical</span><div class="design-control"><input type="number" class="spacing-input" value="28" min="0" max="80" oninput="setSP('--sp-pad-v',this.value,'px')"><span class="spacing-unit">px</span></div></div>
     </div>
 
-    <!-- Section spacing -->
+    <!-- ④ SECTION SPACING -->
     <div class="design-section">
       <div class="design-section-title">Section Spacing</div>
-      <div class="design-row"><span class="design-label">Header bottom gap</span><div class="design-control"><input type="number" class="spacing-input" value="14" min="0" max="60" oninput="setSP('--sp-header-mb',this.value,'px')"><span class="spacing-unit">px</span></div></div>
+      <div class="design-row"><span class="design-label">Header bottom</span><div class="design-control"><input type="number" class="spacing-input" value="14" min="0" max="60" oninput="setSP('--sp-header-mb',this.value,'px')"><span class="spacing-unit">px</span></div></div>
       <div class="design-row"><span class="design-label">Title bar margin</span><div class="design-control"><input type="number" class="spacing-input" value="10" min="0" max="50" oninput="setSP('--sp-titlebar-mv',this.value,'px')"><span class="spacing-unit">px</span></div></div>
-      <div class="design-row"><span class="design-label">Meta block bottom</span><div class="design-control"><input type="number" class="spacing-input" value="12" min="0" max="50" oninput="setSP('--sp-meta-mb',this.value,'px')"><span class="spacing-unit">px</span></div></div>
+      <div class="design-row"><span class="design-label">Meta bottom</span><div class="design-control"><input type="number" class="spacing-input" value="12" min="0" max="50" oninput="setSP('--sp-meta-mb',this.value,'px')"><span class="spacing-unit">px</span></div></div>
       <div class="design-row"><span class="design-label">Field gap</span><div class="design-control"><input type="number" class="spacing-input" value="4" min="0" max="30" oninput="setSP('--sp-field-gap',this.value,'px')"><span class="spacing-unit">px</span></div></div>
       <div class="design-row"><span class="design-label">Table margin</span><div class="design-control"><input type="number" class="spacing-input" value="10" min="0" max="50" oninput="setSP('--sp-table-mv',this.value,'px')"><span class="spacing-unit">px</span></div></div>
-      <div class="design-row"><span class="design-label">Table row height</span><div class="design-control"><input type="number" class="spacing-input" value="7" min="2" max="30" oninput="setSP('--sp-table-row',this.value,'px')"><span class="spacing-unit">px</span></div></div>
-      <div class="design-row"><span class="design-label">Total margin top</span><div class="design-control"><input type="number" class="spacing-input" value="6" min="0" max="40" oninput="setSP('--sp-total-mt',this.value,'px')"><span class="spacing-unit">px</span></div></div>
-      <div class="design-row"><span class="design-label">Banking margin top</span><div class="design-control"><input type="number" class="spacing-input" value="14" min="0" max="80" oninput="setSP('--sp-banking-mt',this.value,'px')"><span class="spacing-unit">px</span></div></div>
-      <div class="design-row"><span class="design-label">Footer margin top</span><div class="design-control"><input type="number" class="spacing-input" value="14" min="0" max="80" oninput="setSP('--sp-footer-mt',this.value,'px')"><span class="spacing-unit">px</span></div></div>
+      <div class="design-row"><span class="design-label">Row height</span><div class="design-control"><input type="number" class="spacing-input" value="7" min="2" max="30" oninput="setSP('--sp-table-row',this.value,'px')"><span class="spacing-unit">px</span></div></div>
+      <div class="design-row"><span class="design-label">Total top</span><div class="design-control"><input type="number" class="spacing-input" value="6" min="0" max="40" oninput="setSP('--sp-total-mt',this.value,'px')"><span class="spacing-unit">px</span></div></div>
+      <div class="design-row"><span class="design-label">Banking top</span><div class="design-control"><input type="number" class="spacing-input" value="14" min="0" max="80" oninput="setSP('--sp-banking-mt',this.value,'px')"><span class="spacing-unit">px</span></div></div>
+      <div class="design-row"><span class="design-label">Footer top</span><div class="design-control"><input type="number" class="spacing-input" value="14" min="0" max="80" oninput="setSP('--sp-footer-mt',this.value,'px')"><span class="spacing-unit">px</span></div></div>
     </div>
 
-    <!-- Bill To field spacing -->
+    <!-- ⑤ BILL TO FIELDS -->
     <div class="design-section">
-      <div class="design-section-title">Bill To Fields (extra top gap)</div>
+      <div class="design-section-title">Bill To Fields (top gap)</div>
       <div class="design-row"><span class="design-label">Name</span><div class="design-control"><input type="number" class="spacing-input" value="0" min="0" max="50" oninput="setSP('--sp-name-mt',this.value,'px')"><span class="spacing-unit">px</span></div></div>
       <div class="design-row"><span class="design-label">Address</span><div class="design-control"><input type="number" class="spacing-input" value="0" min="0" max="50" oninput="setSP('--sp-address-mt',this.value,'px')"><span class="spacing-unit">px</span></div></div>
       <div class="design-row"><span class="design-label">Mobile</span><div class="design-control"><input type="number" class="spacing-input" value="0" min="0" max="50" oninput="setSP('--sp-mobile-mt',this.value,'px')"><span class="spacing-unit">px</span></div></div>
     </div>
 
-    <!-- Shipping field spacing -->
+    <!-- ⑥ SHIPPING FIELDS -->
     <div class="design-section">
-      <div class="design-section-title">Shipping Fields (extra top gap)</div>
+      <div class="design-section-title">Shipping Fields (top gap)</div>
       <div class="design-row"><span class="design-label">Shipping Mark</span><div class="design-control"><input type="number" class="spacing-input" value="0" min="0" max="50" oninput="setSP('--sp-shipmark-mt',this.value,'px')"><span class="spacing-unit">px</span></div></div>
       <div class="design-row"><span class="design-label">Shipping No</span><div class="design-control"><input type="number" class="spacing-input" value="0" min="0" max="50" oninput="setSP('--sp-shipno-mt',this.value,'px')"><span class="spacing-unit">px</span></div></div>
       <div class="design-row"><span class="design-label">Tracking No</span><div class="design-control"><input type="number" class="spacing-input" value="0" min="0" max="50" oninput="setSP('--sp-trackno-mt',this.value,'px')"><span class="spacing-unit">px</span></div></div>
     </div>
 
-    <button class="btn btn-gold" style="width:100%;" onclick="resetSpacing()">↩ Reset All Spacing</button>
+    <button class="btn btn-gold" style="width:100%;" onclick="resetSpacing()">↩ Reset Spacing</button>
   </div>
 
   <!-- Invoice Preview -->
@@ -495,7 +413,6 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 
         <div class="inv-header">
           <div class="inv-logo-area">
-            <!-- Logo icon: inline style for guaranteed print rendering -->
             <div class="inv-logo-icon" id="inv-logo-icon" style="background:#d0021b;color:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact;">N</div>
             <div><div class="inv-company-name">NORTHERN<span>LOGISTICS INTERNATIONAL</span></div></div>
           </div>
@@ -508,7 +425,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
           </div>
         </div>
 
-        <div class="inv-title-bar" style="-webkit-print-color-adjust:exact;print-color-adjust:exact;background:#2d1b69;color:#fff;">INVOICE</div>
+        <div class="inv-title-bar" style="background:#2d1b69;color:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact;">INVOICE</div>
 
         <div class="inv-meta">
           <div>
@@ -576,7 +493,15 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 <script>
 (function(){
   var sheetRows=[],selectedRows=[];
+  var LS_URL='nl_sheet_url';
+  var LS_BG='nl_bg_src';
+  var LS_BG_OP='nl_bg_op';
+  var LS_BG_SIZE='nl_bg_size';
+  var LS_BG_POS='nl_bg_pos';
+
+  /* ── Boot ── */
   function boot(){
+    // Wire up buttons
     g('btn-load').addEventListener('click',loadSheet);
     g('btn-parse-csv').addEventListener('click',parsePastedCSV);
     g('btn-add-row').addEventListener('click',addManualRow);
@@ -589,6 +514,18 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
     g('check-all').addEventListener('change',function(){toggleAll(this.checked);});
     g('invoice-modal').addEventListener('click',function(e){if(e.target===this)closeModal();});
     g('sheet-url').addEventListener('keydown',function(e){if(e.key==='Enter')loadSheet();});
+
+    // Clear saved URL button
+    g('btn-clear-url').addEventListener('click',function(){
+      try{localStorage.removeItem(LS_URL);}catch(e){}
+      g('sheet-url').value='';
+      g('saved-badge').classList.remove('show');
+      sheetRows=[];renderTable();
+      setStatus('','');
+      toast('Saved URL cleared');
+    });
+
+    // Background file input
     g('bg-file-input').addEventListener('change',function(){
       var file=this.files[0];if(!file)return;
       var reader=new FileReader();
@@ -606,9 +543,43 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
       reader.onload=function(ev){applyBgImage(ev.target.result);};
       reader.readAsDataURL(file);
     });
+
+    // ── Restore from localStorage ──
+    restoreFromStorage();
   }
+
+  function restoreFromStorage(){
+    // Restore sheet URL
+    try{
+      var savedUrl=localStorage.getItem(LS_URL);
+      if(savedUrl){
+        g('sheet-url').value=savedUrl;
+        g('saved-badge').classList.add('show');
+        // Auto-load the sheet
+        setStatus('yellow','Auto-loading saved sheet...');
+        loadSheetSilent(savedUrl);
+      }
+    }catch(e){}
+
+    // Restore background image
+    try{
+      var savedBg=localStorage.getItem(LS_BG);
+      if(savedBg){
+        var op=localStorage.getItem(LS_BG_OP)||'15';
+        var size=localStorage.getItem(LS_BG_SIZE)||'cover';
+        var pos=localStorage.getItem(LS_BG_POS)||'center';
+        g('bg-opacity').value=op;
+        g('bg-opacity-val').value=op;
+        g('bg-size').value=size;
+        g('bg-pos').value=pos;
+        applyBgImage(savedBg,true); // true = silent (no toast)
+      }
+    }catch(e){}
+  }
+
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
 
+  /* ── Helpers ── */
   function g(id){return document.getElementById(id);}
   function esc(s){if(!s)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
   function setText(id,v){var el=g(id);if(el)el.textContent=v||'';}
@@ -619,30 +590,93 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 
   window.switchTab=function(tab){['sheet','paste','manual'].forEach(function(t){g('tab-'+t).classList.toggle('active',t===tab);g('panel-'+t).classList.toggle('active',t===tab);});};
 
-  /* Toggle element visibility */
-  window.toggleEl=function(id,show){
+  /* ── Toggle helpers ── */
+  window.toggleEl=function(id,displayType,show){
     var el=g(id);if(!el)return;
-    el.style.display=show?'':'none';
-    if(id==='inv-logo-icon') el.style.display=show?'flex':'none';
-    if(id==='inv-watermark') el.style.visibility=show?'visible':'hidden';
+    el.style.display=show?displayType:'none';
+  };
+  window.toggleWatermark=function(show){
+    var el=g('inv-watermark');if(!el)return;
+    el.style.visibility=show?'visible':'hidden';
+    el.style.display=show?'block':'none';
+  };
+  window.toggleBgLayer=function(show){
+    var layer=g('inv-bg-layer');if(!layer)return;
+    // Only show if there is actually a bg image set
+    if(show && layer.style.backgroundImage && layer.style.backgroundImage!=='none' && layer.style.backgroundImage!==''){
+      layer.style.display='block';
+    } else {
+      layer.style.display='none';
+    }
+    // Remember toggle state but don't overwrite the src
+    try{localStorage.setItem('nl_bg_visible',show?'1':'0');}catch(e){}
   };
 
-  /* Background */
-  function applyBgImage(src){
+  /* ── Background image ── */
+  function applyBgImage(src,silent){
     var layer=g('inv-bg-layer');
     layer.style.backgroundImage='url('+src+')';
-    layer.style.backgroundSize=g('bg-size').value;
-    layer.style.backgroundPosition=g('bg-pos').value;
-    layer.style.display='block';
+    var size=g('bg-size').value;
+    var pos=g('bg-pos').value;
+    var op=g('bg-opacity').value;
+    layer.style.backgroundSize=size;
+    layer.style.backgroundPosition=pos;
+    layer.style.opacity=op/100;
+    // Respect toggle
+    var visToggle=g('tog-bg');
+    layer.style.display=(visToggle&&!visToggle.checked)?'none':'block';
+
     var p=g('bg-preview');p.src=src;p.style.display='block';
-    toast('✓ Background applied');
+
+    // Save to localStorage (only if not a huge data URL — limit ~4MB)
+    try{
+      if(src.length < 4000000){
+        localStorage.setItem(LS_BG,src);
+        localStorage.setItem(LS_BG_OP,op);
+        localStorage.setItem(LS_BG_SIZE,size);
+        localStorage.setItem(LS_BG_POS,pos);
+      }
+    }catch(e){}
+
+    if(!silent) toast('✓ Background applied & saved');
   }
-  window.applyBgUrl=function(){var url=g('bg-url-input').value.trim();if(!url){toast('Paste an image URL first');return;}applyBgImage(url);};
-  window.removeBg=function(){var layer=g('inv-bg-layer');layer.style.backgroundImage='';layer.style.display='none';g('bg-preview').style.display='none';g('bg-preview').src='';g('bg-url-input').value='';g('bg-file-input').value='';toast('Background removed');};
-  window.updateBgOpacity=function(val){g('inv-bg-layer').style.opacity=val/100;g('bg-opacity-val').value=val;};
-  window.syncOpacityInput=function(val){var n=Math.min(100,Math.max(0,parseInt(val)||0));g('inv-bg-layer').style.opacity=n/100;g('bg-opacity').value=n;};
-  window.updateBgSize=function(val){g('inv-bg-layer').style.backgroundSize=val;};
-  window.updateBgPos=function(val){g('inv-bg-layer').style.backgroundPosition=val;};
+
+  window.applyBgUrl=function(){
+    var url=g('bg-url-input').value.trim();
+    if(!url){toast('Paste an image URL first');return;}
+    applyBgImage(url);
+  };
+
+  window.removeBg=function(){
+    var layer=g('inv-bg-layer');
+    layer.style.backgroundImage='';layer.style.display='none';
+    g('bg-preview').style.display='none';g('bg-preview').src='';
+    g('bg-url-input').value='';g('bg-file-input').value='';
+    try{localStorage.removeItem(LS_BG);localStorage.removeItem(LS_BG_OP);localStorage.removeItem(LS_BG_SIZE);localStorage.removeItem(LS_BG_POS);}catch(e){}
+    // Reset toggle
+    var tog=g('tog-bg');if(tog)tog.checked=true;
+    toast('✓ Background removed');
+  };
+
+  window.updateBgOpacity=function(val){
+    g('inv-bg-layer').style.opacity=val/100;
+    g('bg-opacity-val').value=val;
+    try{localStorage.setItem(LS_BG_OP,val);}catch(e){}
+  };
+  window.syncOpacityInput=function(val){
+    var n=Math.min(100,Math.max(0,parseInt(val)||0));
+    g('inv-bg-layer').style.opacity=n/100;
+    g('bg-opacity').value=n;
+    try{localStorage.setItem(LS_BG_OP,n);}catch(e){}
+  };
+  window.updateBgSize=function(val){
+    g('inv-bg-layer').style.backgroundSize=val;
+    try{localStorage.setItem(LS_BG_SIZE,val);}catch(e){}
+  };
+  window.updateBgPos=function(val){
+    g('inv-bg-layer').style.backgroundPosition=val;
+    try{localStorage.setItem(LS_BG_POS,val);}catch(e){}
+  };
 
   window.setSP=function(v,val,u){g('invoice-paper').style.setProperty(v,val+u);};
   window.resetSpacing=function(){
@@ -654,13 +688,49 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
     toast('Spacing reset');
   };
 
+  /* ── Sheet helpers ── */
   function extractSheetId(url){var m=url.match(/\/spreadsheets\/d\/([a-zA-Z0-9_-]+)/);return m?m[1]:null;}
   function extractGid(url){var m=url.match(/[#&?]gid=(\d+)/);return m?m[1]:'0';}
   function fetchViaCsv(csvUrl){return new Promise(function(resolve,reject){var timer=setTimeout(function(){reject(new Error('timeout'));},10000);fetch(csvUrl).then(function(r){clearTimeout(timer);if(!r.ok)throw new Error('HTTP '+r.status);return r.text();}).then(function(t){if(!t||t.length<5)throw new Error('empty');if(t.trim().startsWith('<'))throw new Error('got HTML');resolve(t);}).catch(function(e){clearTimeout(timer);reject(e);});});}
   function fetchViaJsonp(sheetId,gid){return new Promise(function(resolve,reject){var cbName='nlCb_'+Date.now();var timer=setTimeout(function(){delete window[cbName];var s=document.getElementById('jsonp-script');if(s)s.remove();reject(new Error('timeout'));},12000);window[cbName]=function(data){clearTimeout(timer);delete window[cbName];var s=document.getElementById('jsonp-script');if(s)s.remove();try{var feed=data.feed;if(!feed||!feed.entry){reject(new Error('No data'));return;}var rows=[];feed.entry.forEach(function(entry){var cell=entry['gs$cell'];var r=parseInt(cell.row),c=parseInt(cell.col);if(!rows[r])rows[r]=[];rows[r][c]=cell.$t||'';});resolve(rows);}catch(e){reject(e);}};var url='https://spreadsheets.google.com/feeds/cells/'+sheetId+'/'+(parseInt(gid)+1)+'/public/full?alt=json-in-script&callback='+cbName;var script=document.createElement('script');script.id='jsonp-script';script.src=url;script.onerror=function(){clearTimeout(timer);delete window[cbName];reject(new Error('Script load failed'));};document.head.appendChild(script);});}
-  async function loadSheetData(rawUrl){var sheetId=extractSheetId(rawUrl),gid=extractGid(rawUrl);if(!sheetId)throw new Error('Could not find spreadsheet ID');var csvUrl='https://docs.google.com/spreadsheets/d/'+sheetId+'/export?format=csv&gid='+gid;setStatus('yellow','Trying direct fetch...');setProgress(20);try{var t=await fetchViaCsv(csvUrl);setProgress(100);return{type:'csv',data:t};}catch(e){console.warn('CSV failed:',e.message);}setStatus('yellow','Trying JSON feed...');setProgress(50);try{var j=await fetchViaJsonp(sheetId,gid);setProgress(100);return{type:'json',data:j};}catch(e){throw new Error('Could not load sheet: '+e.message);}}
-  async function loadSheet(){var raw=g('sheet-url').value.trim();if(!raw){toast('Paste a Google Sheet URL first');return;}setStatus('','Connecting...');setProgress(5);var btn=g('btn-load');btn.disabled=true;btn.textContent='Loading...';try{var result=await loadSheetData(raw);if(result.type==='csv')parseCSV(result.data);else parseJsonRows(result.data);setStatus('green','Connected — '+sheetRows.length+' rows');toast('✓ Loaded '+sheetRows.length+' rows');}catch(e){setStatus('red','Failed');setProgress(0);toast('❌ '+e.message);}finally{btn.disabled=false;btn.textContent='↻ Load Sheet Data';}}
 
+  async function loadSheetData(rawUrl){
+    var sheetId=extractSheetId(rawUrl),gid=extractGid(rawUrl);
+    if(!sheetId)throw new Error('Could not find spreadsheet ID');
+    var csvUrl='https://docs.google.com/spreadsheets/d/'+sheetId+'/export?format=csv&gid='+gid;
+    setStatus('yellow','Connecting...');setProgress(20);
+    try{var t=await fetchViaCsv(csvUrl);setProgress(100);return{type:'csv',data:t};}catch(e){console.warn('CSV failed:',e.message);}
+    setProgress(50);
+    try{var j=await fetchViaJsonp(sheetId,gid);setProgress(100);return{type:'json',data:j};}catch(e){throw new Error('Could not load sheet: '+e.message);}
+  }
+
+  async function loadSheet(){
+    var raw=g('sheet-url').value.trim();
+    if(!raw){toast('Paste a Google Sheet URL first');return;}
+    setStatus('','Connecting...');setProgress(5);
+    var btn=g('btn-load');btn.disabled=true;btn.textContent='Loading...';
+    try{
+      var result=await loadSheetData(raw);
+      if(result.type==='csv')parseCSV(result.data);else parseJsonRows(result.data);
+      setStatus('green','Connected — '+sheetRows.length+' rows');
+      // Save URL to localStorage after successful load
+      try{localStorage.setItem(LS_URL,raw);g('saved-badge').classList.add('show');}catch(e){}
+      toast('✓ Loaded '+sheetRows.length+' rows — URL saved');
+    }catch(e){setStatus('red','Failed');setProgress(0);toast('❌ '+e.message);}
+    finally{btn.disabled=false;btn.textContent='↻ Load Sheet Data';}
+  }
+
+  async function loadSheetSilent(raw){
+    try{
+      var result=await loadSheetData(raw);
+      if(result.type==='csv')parseCSV(result.data);else parseJsonRows(result.data);
+      setStatus('green','Auto-loaded — '+sheetRows.length+' rows');
+      g('saved-badge').classList.add('show');
+      toast('✓ Auto-loaded '+sheetRows.length+' rows from saved sheet');
+    }catch(e){setStatus('red','Auto-load failed');setProgress(0);console.warn('Auto-load failed:',e.message);}
+  }
+
+  /* ── Parsers ── */
   function parseJsonRows(rawRows){var POSITIONAL=['ShippingNumber','TrackingNumber','ShippingMark','Date','Name','Address','Mobile','Description','Quantity','Weight','Cost','Total'];var firstRow=rawRows[1]||[],firstVals=firstRow.slice(1);var looksLikeHeaders=firstVals.some(function(v){return v&&isNaN(v)&&v.length>1;});var headers=looksLikeHeaders?firstVals:POSITIONAL,dataStart=looksLikeHeaders?2:1;sheetRows=[];for(var r=dataStart;r<rawRows.length;r++){if(!rawRows[r])continue;var vals=rawRows[r],row={};for(var c=1;c<vals.length;c++){var h=headers[c-1]||('col'+c);row[h]=(vals[c]||'').trim();}if(Object.values(row).some(function(v){return v;}))sheetRows.push(row);}renderTable();}
   function parsePastedCSV(){var text=g('csv-paste').value.trim();if(!text){toast('Paste some CSV data first');return;}parseCSV(text);if(sheetRows.length)toast('✓ Loaded '+sheetRows.length+' rows');}
   var POSITIONAL_HEADERS=['ShippingNumber','TrackingNumber','ShippingMark','Date','Name','Address','Mobile','Description','Quantity','Weight','Cost','Total'];

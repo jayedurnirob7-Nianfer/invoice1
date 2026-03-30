@@ -152,7 +152,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
   --titlebar-my:43px;--meta-mb:60px;
   --table-my:6px;--row-py:8px;--total-mt:8px;--footer-mt:12px;
   --mt-name:10px;--mt-addr:0px;--mt-mob:0px;
-  --mt-date:-85px;--mt-page:-5px;
+  --mt-date:0px;--mt-page:0px;
   --mt-smark:18px;--mt-sno:0px;--mt-tno:0px;
   --sz-cosub:10px;--sz-contact:11px;--sz-titlebar:19px;
   --sz-field:11px;--sz-table:11px;--sz-total:13px;--sz-banking:11px;--sz-footer:11px;
@@ -179,8 +179,9 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 .inv-meta-right{text-align:right;font-size:var(--sz-field);line-height:1.9;}
 .inv-meta-right .inv-field{justify-content:flex-end;}
 .inv-meta-right .inv-field .val{text-align:left;min-width:95px;}
+/* Date/Page sit at top of right column naturally; Shipping fields below with gap */
 #mf-name{margin-top:var(--mt-name);}#mf-addr{margin-top:var(--mt-addr);}#mf-mob{margin-top:var(--mt-mob);}
-#mf-date{margin-top:var(--mt-date);}#mf-page{margin-top:var(--mt-page);}
+#mf-date{margin-top:0px;}#mf-page{margin-top:0px;}
 #mf-smark{margin-top:var(--mt-smark);}#mf-sno{margin-top:var(--mt-sno);}#mf-tno{margin-top:var(--mt-tno);}
 .inv-table{width:100%;border-collapse:collapse;margin:var(--table-my) 0;font-size:var(--sz-table);}
 .inv-table thead th{background-color:#2d1b69;color:#fff;padding:8px 10px;font-weight:600;text-align:left;}
@@ -368,7 +369,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
           <div class="inv-meta-right">
             <div id="mf-date">Date : <span id="inv-date" contenteditable="false" data-ph="Date"></span></div>
             <div id="mf-page">Page : <span id="e-page" contenteditable="false" data-ph="1-1">1-1</span></div>
-            <div style="margin-top:8px;">
+            <div style="margin-top:28px;">
               <div class="inv-field" id="mf-smark"><strong>Shipping Mark :</strong><span class="val" id="inv-smark" contenteditable="false" data-ph="Mark"></span></div>
               <div class="inv-field" id="mf-sno"><strong>Shipping No :</strong><span class="val" id="inv-sno" contenteditable="false" data-ph="Shipping No."></span></div>
               <div class="inv-field" id="mf-tno"><strong>Tracking No :</strong><span class="val" id="inv-tno" contenteditable="false" data-ph="Tracking No."></span></div>

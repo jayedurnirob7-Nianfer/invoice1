@@ -527,12 +527,14 @@ function boot(){
     applyBgImg(savedBg,true);
     /* If user had previously turned the toggle OFF, respect that */
     var tBgSaved=lsGet(LS.TOG_BG);
-    if(tBgSaved==='0'){var l=g('inv-bg');if(l)l.style.display='none';var cb=g('tog-bg');if(cb)cb.checked=false;}
+    if(tBgSaved==='0'){var l=g('inv-bg');if(l)l.style.display='none';var cbBg=g('tog-bg');if(cbBg)cbBg.checked=false;}
   }
 
   /* other toggles */
-  if(tBank!==null){var cb=g('tog-banking');if(cb){cb.checked=(tBank==='1');toggleEl('inv-banking','block',cb.checked);}}
-  if(tSoc!==null){var cb=g('tog-socials');if(cb){cb.checked=(tSoc==='1');toggleEl('inv-socials','flex',cb.checked);}}
+  var cbBank=g('tog-banking');
+  if(tBank!==null&&cbBank){cbBank.checked=(tBank==='1');toggleEl('inv-banking','block',cbBank.checked);}
+  var cbSoc=g('tog-socials');
+  if(tSoc!==null&&cbSoc){cbSoc.checked=(tSoc==='1');toggleEl('inv-socials','flex',cbSoc.checked);}
   /* logo */
   var savedLogo=lsGet(LS.LOGO);if(savedLogo)applyLogoImg(savedLogo,true);
   /* sheet URL */

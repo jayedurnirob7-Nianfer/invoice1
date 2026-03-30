@@ -688,53 +688,88 @@ function getV(row,field){
 function extractId(url){var m=url.match(/\/spreadsheets\/d\/([a-zA-Z0-9_-]+)/);return m?m[1]:null;}
 function extractGid(url){var m=url.match(/[#&?]gid=(\d+)/);return m?m[1]:'0';}
 
+async function fetchWithTimeout(url,ms){
+  var ctrl=new AbortController();
+  var tid=setTimeout(function(){ctrl.abort();},ms);
+  try{var r=await fetch(url,{signal:ctrl.signal});clearTimeout(tid);return r;}
+  catch(e){clearTimeout(tid);throw e;}
+}
+
+function gvizJsonToCsv(json){
+  var clean=json.replace(/^\/\*[^\*]*\*\/\s*\n?[^(]*\(/,'').replace(/\)\s*;?\s*$/,'');
+  var obj=JSON.parse(clean);
+  var cols=obj.table.cols;
+  var rowdata=obj.table.rows;
+  var lines=[];
+  lines.push(cols.map(function(c){return'"'+(c.label||c.id||'')+'"';}).join(','));
+  rowdata.forEach(function(row){
+    var cells=(row.c||[]).map(function(cell){
+      if(!cell||cell.v===null||cell.v===undefined)return'""';
+      var v=(cell.f!==undefined&&cell.f!==null)?cell.f:cell.v;
+      return'"'+String(v).replace(/"/g,'""')+'"';
+    });
+    lines.push(cells.join(','));
+  });
+  return lines.join('\n');
+}
+
 async function fetchCsvText(sid,gid){
   var directUrl='https://docs.google.com/spreadsheets/d/'+sid+'/export?format=csv&gid='+gid;
 
-  /* ── Attempt 1: direct fetch ── */
+  /* ── Attempt 1: Google gviz JSON API (most reliable, no CORS issues) ── */
   try{
-    var ctrl=new AbortController();
-    var tid=setTimeout(function(){ctrl.abort();},10000);
-    var r=await fetch(directUrl,{signal:ctrl.signal});
-    clearTimeout(tid);
-    if(r.ok){
-      var txt=await r.text();
-      if(txt&&txt.length>3&&!txt.trim().startsWith('<'))return txt;
+    var gvizUrl='https://docs.google.com/spreadsheets/d/'+sid+'/gviz/tq?tqx=out:json&gid='+gid;
+    var r1=await fetchWithTimeout(gvizUrl,12000);
+    if(r1.ok){
+      var txt1=await r1.text();
+      if(txt1&&txt1.length>10){
+        var csv1=gvizJsonToCsv(txt1);
+        if(csv1&&csv1.length>3)return csv1;
+      }
     }
   }catch(e){/* fall through */}
 
-  /* ── Attempt 2: allorigins proxy ── */
+  /* ── Attempt 2: direct CSV export ── */
   try{
-    var proxy1='https://api.allorigins.win/raw?url='+encodeURIComponent(directUrl);
-    var ctrl2=new AbortController();
-    var tid2=setTimeout(function(){ctrl2.abort();},15000);
-    var r2=await fetch(proxy1,{signal:ctrl2.signal});
-    clearTimeout(tid2);
+    var r2=await fetchWithTimeout(directUrl,10000);
     if(r2.ok){
       var txt2=await r2.text();
       if(txt2&&txt2.length>3&&!txt2.trim().startsWith('<'))return txt2;
     }
   }catch(e){/* fall through */}
 
-  /* ── Attempt 3: corsproxy.io ── */
+  /* ── Attempt 3: allorigins.win proxy ── */
   try{
-    var proxy2='https://corsproxy.io/?'+encodeURIComponent(directUrl);
-    var ctrl3=new AbortController();
-    var tid3=setTimeout(function(){ctrl3.abort();},15000);
-    var r3=await fetch(proxy2,{signal:ctrl3.signal});
-    clearTimeout(tid3);
+    var r3=await fetchWithTimeout('https://api.allorigins.win/raw?url='+encodeURIComponent(directUrl),15000);
     if(r3.ok){
       var txt3=await r3.text();
       if(txt3&&txt3.length>3&&!txt3.trim().startsWith('<'))return txt3;
     }
   }catch(e){/* fall through */}
 
-  /* ── All failed ── */
+  /* ── Attempt 4: corsproxy.io ── */
+  try{
+    var r4=await fetchWithTimeout('https://corsproxy.io/?'+encodeURIComponent(directUrl),15000);
+    if(r4.ok){
+      var txt4=await r4.text();
+      if(txt4&&txt4.length>3&&!txt4.trim().startsWith('<'))return txt4;
+    }
+  }catch(e){/* fall through */}
+
+  /* ── Attempt 5: thingproxy ── */
+  try{
+    var r5=await fetchWithTimeout('https://thingproxy.freeboard.io/fetch/'+directUrl,15000);
+    if(r5.ok){
+      var txt5=await r5.text();
+      if(txt5&&txt5.length>3&&!txt5.trim().startsWith('<'))return txt5;
+    }
+  }catch(e){/* fall through */}
+
   throw new Error(
     'Could not load sheet. Please check:\n'+
     '1. Sheet is shared → "Anyone with the link can view"\n'+
     '2. The URL is correct\n'+
-    '3. Open the URL in a new tab to verify access'
+    '3. Try opening the sheet URL in a new browser tab'
   );
 }
 

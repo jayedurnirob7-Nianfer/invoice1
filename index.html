@@ -512,22 +512,23 @@ function getPdfFilename(){
 
 /* ── BOOT ────────────────────────────────────────────────── */
 function boot(){
+  try{
   loadFontSizes();
 
   var tBank=lsGet(LS.TOG_BANKING),tSoc=lsGet(LS.TOG_SOCIALS);
 
   /* bg opacity/size — must be set BEFORE applyBgImg so it reads correct values */
+  var opEl=g('bg-op'),opVEl=g('bg-op-v'),szEl2=g('bg-sz');
   var op=lsGet(LS.BGOP)||'15',sz=lsGet(LS.BGSZ)||'cover';
-  g('bg-op').value=op;g('bg-op-v').value=op;
-  var szEl=g('bg-sz');if(szEl)szEl.value=sz;
+  if(opEl)opEl.value=op;if(opVEl)opVEl.value=op;
+  if(szEl2)szEl2.value=sz;
 
-  /* bg image — applyBgImg now always shows the layer and sets toggle ON */
+  /* bg image */
   var savedBg=lsGet(LS.BG);
   if(savedBg){
     applyBgImg(savedBg,true);
-    /* If user had previously turned the toggle OFF, respect that */
     var tBgSaved=lsGet(LS.TOG_BG);
-    if(tBgSaved==='0'){var l=g('inv-bg');if(l)l.style.display='none';var cbBg=g('tog-bg');if(cbBg)cbBg.checked=false;}
+    if(tBgSaved==='0'){var lBg=g('inv-bg');if(lBg)lBg.style.display='none';var cbBg=g('tog-bg');if(cbBg)cbBg.checked=false;}
   }
 
   /* other toggles */
@@ -535,27 +536,40 @@ function boot(){
   if(tBank!==null&&cbBank){cbBank.checked=(tBank==='1');toggleEl('inv-banking','block',cbBank.checked);}
   var cbSoc=g('tog-socials');
   if(tSoc!==null&&cbSoc){cbSoc.checked=(tSoc==='1');toggleEl('inv-socials','flex',cbSoc.checked);}
+
   /* logo */
   var savedLogo=lsGet(LS.LOGO);if(savedLogo)applyLogoImg(savedLogo,true);
-  /* sheet URL */
-  var savedSkip=lsGet(LS.SKIP);if(savedSkip!==null)g('skip-rows').value=savedSkip;
-  var savedUrl=lsGet(LS.URL);
-  if(savedUrl){g('sheet-url').value=savedUrl;g('saved-badge').classList.add('show');setStatus('y','Auto-loading...');loadSheetSilent(savedUrl);}
 
-  g('btn-load').addEventListener('click',loadSheet);
-  g('btn-clear-url').addEventListener('click',function(){lsRm(LS.URL);g('sheet-url').value='';g('saved-badge').classList.remove('show');rows=[];renderTable();toast('URL cleared');});
-  g('btn-gen').addEventListener('click',genInvoice);
-  g('check-all').addEventListener('change',function(){toggleAll(this.checked);});
-  g('sheet-url').addEventListener('keydown',function(e){if(e.key==='Enter')loadSheet();});
-  g('skip-rows').addEventListener('change',function(){lsSet(LS.SKIP,this.value);});
-  g('bg-file-in').addEventListener('change',function(){var f=this.files[0];if(!f)return;var r=new FileReader();r.onload=function(e){applyBgImg(e.target.result);};r.readAsDataURL(f);this.value='';});
-  g('logo-file-in').addEventListener('change',function(){var f=this.files[0];if(!f)return;var r=new FileReader();r.onload=function(e){applyLogoImg(e.target.result);};r.readAsDataURL(f);this.value='';});
+  /* sheet URL */
+  var skipEl=g('skip-rows');
+  var savedSkip=lsGet(LS.SKIP);if(savedSkip!==null&&skipEl)skipEl.value=savedSkip;
+  var savedUrl=lsGet(LS.URL);
+  if(savedUrl){
+    var suEl=g('sheet-url');if(suEl)suEl.value=savedUrl;
+    var sbEl=g('saved-badge');if(sbEl)sbEl.classList.add('show');
+    setStatus('y','Auto-loading...');
+    loadSheetSilent(savedUrl);
+  }
+
+  var btnLoad=g('btn-load');if(btnLoad)btnLoad.addEventListener('click',loadSheet);
+  var btnClear=g('btn-clear-url');if(btnClear)btnClear.addEventListener('click',function(){lsRm(LS.URL);var su=g('sheet-url');if(su)su.value='';var sb=g('saved-badge');if(sb)sb.classList.remove('show');rows=[];renderTable();toast('URL cleared');});
+  var btnGen=g('btn-gen');if(btnGen)btnGen.addEventListener('click',genInvoice);
+  var chkAll=g('check-all');if(chkAll)chkAll.addEventListener('change',function(){toggleAll(this.checked);});
+  var sheetUrlEl=g('sheet-url');if(sheetUrlEl)sheetUrlEl.addEventListener('keydown',function(e){if(e.key==='Enter')loadSheet();});
+  if(skipEl)skipEl.addEventListener('change',function(){lsSet(LS.SKIP,this.value);});
+
+  var bgFileIn=g('bg-file-in');
+  if(bgFileIn)bgFileIn.addEventListener('change',function(){var f=this.files[0];if(!f)return;var r=new FileReader();r.onload=function(e){applyBgImg(e.target.result);};r.readAsDataURL(f);this.value='';});
+  var logoFileIn=g('logo-file-in');
+  if(logoFileIn)logoFileIn.addEventListener('change',function(){var f=this.files[0];if(!f)return;var r=new FileReader();r.onload=function(e){applyLogoImg(e.target.result);};r.readAsDataURL(f);this.value='';});
+
   var dz=document.querySelector('.bg-drop');
   if(dz){
     dz.addEventListener('dragover',function(e){e.preventDefault();dz.style.borderColor='var(--gold)';});
     dz.addEventListener('dragleave',function(){dz.style.borderColor='';});
     dz.addEventListener('drop',function(e){e.preventDefault();dz.style.borderColor='';var f=e.dataTransfer.files[0];if(f&&f.type.startsWith('image/')){var r=new FileReader();r.onload=function(ev){applyBgImg(ev.target.result);};r.readAsDataURL(f);}});
   }
+  }catch(err){console.error('Boot error:',err);toast('Boot error: '+err.message,8000);}
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
 
@@ -614,19 +628,22 @@ window.resetSpacing=function(){
 
 /* ── BACKGROUND ──────────────────────────────────────────── */
 function applyBgImg(src,silent){
-  var l=g('inv-bg');
+  var l=g('inv-bg');if(!l)return;
+  var szEl=g('bg-sz'),opEl=g('bg-op'),prevEl=g('bg-prev'),togEl=g('tog-bg');
   l.style.backgroundImage='url('+src+')';
-  l.style.backgroundSize=g('bg-sz').value||'cover';
+  l.style.backgroundSize=szEl?szEl.value||'cover':'cover';
   l.style.backgroundPosition='50% 50%';
-  l.style.opacity=(parseFloat(g('bg-op').value)||15)/100;
-  /* Always show the bg layer when applying — toggle just hides/shows it */
+  l.style.opacity=(parseFloat(opEl?opEl.value:'15')||15)/100;
   l.style.display='block';
-  g('bg-prev').src=src;g('bg-prev').style.display='block';
-  /* Sync toggle checkbox to ON whenever an image is applied */
-  var tog=g('tog-bg');if(tog)tog.checked=true;
+  if(prevEl){prevEl.src=src;prevEl.style.display='block';}
+  if(togEl)togEl.checked=true;
   lsSet(LS.TOG_BG,'1');
   if(!silent){
-    if(src.length<5000000){lsSet(LS.BG,src);lsSet(LS.BGOP,g('bg-op').value);lsSet(LS.BGSZ,g('bg-sz').value);}
+    if(src.length<5000000){
+      lsSet(LS.BG,src);
+      if(opEl)lsSet(LS.BGOP,opEl.value);
+      if(szEl)lsSet(LS.BGSZ,szEl.value);
+    }
     toast(src.length<5000000?'Background applied':'Applied but too large to save (>5MB)');
   }
 }

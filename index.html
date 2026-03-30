@@ -350,7 +350,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
             <strong>Phone :</strong> <span id="e-phone" contenteditable="false" data-ph="Phone">01978755135</span><br>
             Whatsapp : <span id="e-wa" contenteditable="false" data-ph="WhatsApp">01978755135</span><br>
             Wechat : <span id="e-wc" contenteditable="false" data-ph="WeChat">NorthernLogistics</span><br>
-            Mail : <span id="e-mail" contenteditable="false" data-ph="Email">info@northernlogistics.com</span>
+            Mail : <span id="e-mail" contenteditable="false" data-ph="Email"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="4a23242c250a2425383e222f382426252d23393e23293964292527">[email&#160;protected]</a></span>
           </div>
         </div>
         <div class="inv-titlebar" id="e-title" contenteditable="false" data-ph="INVOICE">INVOICE</div>
@@ -385,10 +385,10 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
           </tr></thead>
           <tbody id="inv-rows"></tbody>
         </table>
-        <div class="inv-spacer"></div>
         <div class="inv-total-row">
           <div class="inv-total-box">Total : <span id="e-curr" contenteditable="false" data-ph="BDT">BDT</span><span class="total-val" id="inv-grand"></span></div>
         </div>
+        <div class="inv-spacer"></div>
         <div class="inv-banking" id="inv-banking">
           <div class="banking-header">Banking Details <span class="banking-sep">|</span> <span id="e-bank" contenteditable="false" data-ph="Bank Name">Meghna Bank PLC</span></div>
           <span class="banking-line" id="e-holder" contenteditable="false" data-ph="Account Holder">JAYEDUR RAHMAN NIROB</span>
@@ -422,7 +422,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 
 <div id="toast"></div>
 
-<script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 (function(){
 'use strict';
 
@@ -852,13 +852,3 @@ function genInvoice(){
       +'<td>'+esc(cRaw)+'</td>'
       +'<td class="tr">'+(line?line.toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2}):'—')+'</td>'
       +'</tr>';
-  });
-  g('inv-rows').innerHTML=html;
-  setText('inv-grand',' '+(grand?grand.toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2}):'0.00'));
-  g('inv-modal').classList.add('open');
-}
-
-})();
-</script>
-</body>
-</html>

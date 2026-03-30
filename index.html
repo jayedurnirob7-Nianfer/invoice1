@@ -350,7 +350,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
             <strong>Phone :</strong> <span id="e-phone" contenteditable="false" data-ph="Phone">01978755135</span><br>
             Whatsapp : <span id="e-wa" contenteditable="false" data-ph="WhatsApp">01978755135</span><br>
             Wechat : <span id="e-wc" contenteditable="false" data-ph="WeChat">NorthernLogistics</span><br>
-            Mail : <span id="e-mail" contenteditable="false" data-ph="Email"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="4a23242c250a2425383e222f382426252d23393e23293964292527">[email&#160;protected]</a></span>
+            Mail : <span id="e-mail" contenteditable="false" data-ph="Email">info@northernlogistics.com</span>
           </div>
         </div>
         <div class="inv-titlebar" id="e-title" contenteditable="false" data-ph="INVOICE">INVOICE</div>
@@ -422,11 +422,10 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 
 <div id="toast"></div>
 
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+<script>
 (function(){
 'use strict';
 
-/* ── ALIASES ─────────────────────────────────────────────── */
 var ALIASES={
   Name:['name','clientname','customername','client','customer','fullname','buyername','billto','billname'],
   Address:['address','addr','location','area','district','city'],
@@ -444,13 +443,11 @@ var ALIASES={
 
 var rows=[],selRows=[],hdrs=[],colMap={},editMode=false,dragSrc=null;
 
-/* ── localStorage KEYS ───────────────────────────────────── */
 var LS={
   URL:'nl3_url',BG:'nl3_bg',BGOP:'nl3_bgop',BGSZ:'nl3_bgsz',SKIP:'nl3_skip',
   LOGO:'nl3_logo',TOG_BG:'nl3_tog_bg',TOG_BANKING:'nl3_tog_bank',TOG_SOCIALS:'nl3_tog_soc'
 };
 
-/* ── FONT SIZE CSS VARS ──────────────────────────────────── */
 var CSSMAP={
   'sz-cosub':'--sz-cosub','sz-contact':'--sz-contact','sz-titlebar':'--sz-titlebar',
   'sz-field':'--sz-field','sz-table':'--sz-table','sz-total':'--sz-total',
@@ -461,7 +458,6 @@ var DEFAULTS={
   'sz-table':'11','sz-total':'13','sz-banking':'11','sz-footer':'11'
 };
 
-/* ── HELPERS ─────────────────────────────────────────────── */
 function g(id){return document.getElementById(id);}
 function esc(s){if(!s&&s!==0)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 var _tt;function toast(m,d){var t=g('toast');t.textContent=m;t.classList.add('show');clearTimeout(_tt);_tt=setTimeout(function(){t.classList.remove('show');},d||3500);}
@@ -474,7 +470,6 @@ function setText(id,v){var el=g(id);if(el)el.textContent=v||'';}
 function sk(s){return String(s).toLowerCase().replace(/[\s_\-\.\/\(\)]/g,'');}
 function getSkipCount(){var v=parseInt(g('skip-rows').value);return isNaN(v)||v<0?1:v;}
 
-/* ── FONT SIZE SAVE/LOAD ─────────────────────────────────── */
 function saveFontSizes(){
   var d={};Object.keys(DEFAULTS).forEach(function(id){var el=g(id);if(el)d[id]=el.value;});
   lsSet('nl3_fonts',JSON.stringify(d));
@@ -489,7 +484,6 @@ function loadFontSizes(){
   });
 }
 
-/* ── PDF FILENAME ────────────────────────────────────────── */
 function getPdfFilename(){
   var name=((g('inv-name')||{}).textContent||'Client').trim();
   var trackNo=((g('inv-tno')||{}).textContent||'NoTrack').trim();
@@ -499,7 +493,6 @@ function getPdfFilename(){
   return clean(name)+'_'+clean(trackNo)+'_'+clean(date)+'.pdf';
 }
 
-/* ── BOOT ────────────────────────────────────────────────── */
 function boot(){
   try{
     loadFontSizes();
@@ -529,11 +522,12 @@ function boot(){
       dz.addEventListener('dragleave',function(){dz.style.borderColor='';});
       dz.addEventListener('drop',function(e){e.preventDefault();dz.style.borderColor='';var f=e.dataTransfer.files[0];if(f&&f.type.startsWith('image/')){var r=new FileReader();r.onload=function(ev){applyBgImg(ev.target.result);};r.readAsDataURL(f);}});
     }
+    console.log('Northern Logistics Invoice Generator — boot OK');
   }catch(err){console.error('Boot error:',err);toast('Boot error: '+err.message,8000);}
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
 
-/* ── LOGO ────────────────────────────────────────────────── */
+/* ── LOGO ── */
 function applyLogoImg(src,silent){
   g('inv-logo-icon').innerHTML='<img src="'+src+'" alt="logo">';
   var p=g('logo-prev');p.src=src;p.style.display='block';
@@ -542,7 +536,7 @@ function applyLogoImg(src,silent){
 }
 window.removeLogo=function(){g('inv-logo-icon').innerHTML='N';var p=g('logo-prev');p.src='';p.style.display='none';lsRm(LS.LOGO);toast('Logo removed');};
 
-/* ── EDIT MODE ───────────────────────────────────────────── */
+/* ── EDIT MODE ── */
 window.toggleEdit=function(){
   editMode=!editMode;
   var paper=g('inv-paper'),btn=g('btn-edit'),bar=g('edit-bar-txt');
@@ -561,7 +555,7 @@ window.toggleEdit=function(){
   }
 };
 
-/* ── TOGGLES ─────────────────────────────────────────────── */
+/* ── TOGGLES ── */
 window.toggleEl=function(id,dt,show){
   var el=g(id);if(el)el.style.display=show?dt:'none';
   if(id==='inv-banking')lsSet(LS.TOG_BANKING,show?'1':'0');
@@ -574,7 +568,7 @@ window.toggleBg=function(show){
   l.style.display=(show&&has)?'block':'none';
 };
 
-/* ── FONT SIZES ──────────────────────────────────────────── */
+/* ── FONT SIZES ── */
 window.setSZ=function(cssVar,val){g('inv-paper').style.setProperty(cssVar,parseFloat(val)+'px');saveFontSizes();};
 window.resetSpacing=function(){
   var paper=g('inv-paper');
@@ -585,7 +579,7 @@ window.resetSpacing=function(){
   saveFontSizes();toast('Font sizes reset to defaults');
 };
 
-/* ── BACKGROUND ──────────────────────────────────────────── */
+/* ── BACKGROUND ── */
 function applyBgImg(src,silent){
   var l=g('inv-bg');if(!l)return;
   var szEl=g('bg-sz'),opEl=g('bg-op'),prevEl=g('bg-prev'),togEl=g('tog-bg');
@@ -608,7 +602,7 @@ window.setBgOp=function(v){g('inv-bg').style.opacity=v/100;g('bg-op-v').value=v;
 window.syncBgOp=function(v){var n=Math.min(100,Math.max(0,parseInt(v)||0));g('inv-bg').style.opacity=n/100;g('bg-op').value=n;lsSet(LS.BGOP,n);};
 window.setBgSz=function(v){g('inv-bg').style.backgroundSize=v;lsSet(LS.BGSZ,v);};
 
-/* ── PDF DOWNLOAD ────────────────────────────────────────── */
+/* ── PDF DOWNLOAD ── */
 window.downloadPDF=function(){
   if(editMode)window.toggleEdit();
   var overlay=g('pdf-overlay'),btn=g('btn-pdf');
@@ -642,7 +636,7 @@ window.downloadPDF=function(){
   });
 };
 
-/* ── CSV PARSING ─────────────────────────────────────────── */
+/* ── CSV PARSING ── */
 function splitLine(line){
   var res=[],cur='',inQ=false;
   for(var i=0;i<line.length;i++){
@@ -661,6 +655,7 @@ function detectColMap(hr){
     if(!f)f=hr.find(function(h){if(!h||used[h])return false;var hsk=sk(h);return al.some(function(a){return hsk.indexOf(a)>=0||a.indexOf(hsk)>=0;});});
     if(f){colMap[field]=f;used[f]=true;}else colMap[field]=null;
   });
+  console.log('Column map:', colMap);
 }
 function parseCSV(text){
   text=text.replace(/\r\n/g,'\n').replace(/\r/g,'\n');
@@ -684,7 +679,7 @@ function getV(row,field){
   return '';
 }
 
-/* ── SHEET FETCH — with CORS proxy fallbacks ─────────────── */
+/* ── SHEET FETCH ── */
 function extractId(url){var m=url.match(/\/spreadsheets\/d\/([a-zA-Z0-9_-]+)/);return m?m[1]:null;}
 function extractGid(url){var m=url.match(/[#&?]gid=(\d+)/);return m?m[1]:'0';}
 
@@ -716,64 +711,70 @@ function gvizJsonToCsv(json){
 async function fetchCsvText(sid,gid){
   var directUrl='https://docs.google.com/spreadsheets/d/'+sid+'/export?format=csv&gid='+gid;
 
-  /* ── Attempt 1: Google gviz JSON API (most reliable, no CORS issues) ── */
+  /* Attempt 1: Google gviz JSON API */
   try{
+    console.log('Trying gviz...');
     var gvizUrl='https://docs.google.com/spreadsheets/d/'+sid+'/gviz/tq?tqx=out:json&gid='+gid;
     var r1=await fetchWithTimeout(gvizUrl,12000);
     if(r1.ok){
       var txt1=await r1.text();
       if(txt1&&txt1.length>10){
         var csv1=gvizJsonToCsv(txt1);
-        if(csv1&&csv1.length>3)return csv1;
+        if(csv1&&csv1.length>3){console.log('gviz success');return csv1;}
       }
     }
-  }catch(e){/* fall through */}
+  }catch(e){console.warn('gviz failed:',e.message);}
 
-  /* ── Attempt 2: direct CSV export ── */
+  /* Attempt 2: direct CSV export */
   try{
+    console.log('Trying direct CSV...');
     var r2=await fetchWithTimeout(directUrl,10000);
     if(r2.ok){
       var txt2=await r2.text();
-      if(txt2&&txt2.length>3&&!txt2.trim().startsWith('<'))return txt2;
+      if(txt2&&txt2.length>3&&!txt2.trim().startsWith('<')){console.log('direct CSV success');return txt2;}
     }
-  }catch(e){/* fall through */}
+  }catch(e){console.warn('direct CSV failed:',e.message);}
 
-  /* ── Attempt 3: allorigins.win proxy ── */
+  /* Attempt 3: allorigins.win */
   try{
+    console.log('Trying allorigins...');
     var r3=await fetchWithTimeout('https://api.allorigins.win/raw?url='+encodeURIComponent(directUrl),15000);
     if(r3.ok){
       var txt3=await r3.text();
-      if(txt3&&txt3.length>3&&!txt3.trim().startsWith('<'))return txt3;
+      if(txt3&&txt3.length>3&&!txt3.trim().startsWith('<')){console.log('allorigins success');return txt3;}
     }
-  }catch(e){/* fall through */}
+  }catch(e){console.warn('allorigins failed:',e.message);}
 
-  /* ── Attempt 4: corsproxy.io ── */
+  /* Attempt 4: corsproxy.io */
   try{
+    console.log('Trying corsproxy.io...');
     var r4=await fetchWithTimeout('https://corsproxy.io/?'+encodeURIComponent(directUrl),15000);
     if(r4.ok){
       var txt4=await r4.text();
-      if(txt4&&txt4.length>3&&!txt4.trim().startsWith('<'))return txt4;
+      if(txt4&&txt4.length>3&&!txt4.trim().startsWith('<')){console.log('corsproxy success');return txt4;}
     }
-  }catch(e){/* fall through */}
+  }catch(e){console.warn('corsproxy failed:',e.message);}
 
-  /* ── Attempt 5: thingproxy ── */
+  /* Attempt 5: thingproxy */
   try{
+    console.log('Trying thingproxy...');
     var r5=await fetchWithTimeout('https://thingproxy.freeboard.io/fetch/'+directUrl,15000);
     if(r5.ok){
       var txt5=await r5.text();
-      if(txt5&&txt5.length>3&&!txt5.trim().startsWith('<'))return txt5;
+      if(txt5&&txt5.length>3&&!txt5.trim().startsWith('<')){console.log('thingproxy success');return txt5;}
     }
-  }catch(e){/* fall through */}
+  }catch(e){console.warn('thingproxy failed:',e.message);}
 
   throw new Error(
     'Could not load sheet. Please check:\n'+
     '1. Sheet is shared → "Anyone with the link can view"\n'+
-    '2. The URL is correct\n'+
-    '3. Try opening the sheet URL in a new browser tab'
+    '2. Not restricted to your organization only\n'+
+    '3. The URL is correct\n'+
+    '4. Try opening the gviz URL in a new tab (see console)'
   );
 }
 
-/* ── LOAD SHEET ──────────────────────────────────────────── */
+/* ── LOAD SHEET ── */
 async function loadSheet(){
   var raw=g('sheet-url').value.trim();
   if(!raw){toast('Paste a Google Sheet URL first');return;}
@@ -783,13 +784,14 @@ async function loadSheet(){
   btn.disabled=true;btn.textContent='Loading...';
   setProgress(10);setStatus('y','Connecting...');
   try{
-    setProgress(30);setStatus('y','Fetching via proxy...');
+    setProgress(30);setStatus('y','Fetching data...');
     var csv=await fetchCsvText(sid,extractGid(raw));
     setProgress(90);parseCSV(csv);setProgress(100);
     setStatus('g','Connected — '+rows.length+' rows');
     lsSet(LS.URL,raw);g('saved-badge').classList.add('show');
     toast('Loaded '+rows.length+' rows');
   }catch(e){
+    console.error('loadSheet error:',e);
     setStatus('r','Error');setProgress(0);
     toast('Failed: '+e.message,8000);
   }finally{
@@ -806,11 +808,12 @@ async function loadSheetSilent(raw){
     setStatus('g','Auto-loaded — '+rows.length+' rows');
     g('saved-badge').classList.add('show');
   }catch(e){
-    setStatus('r','Auto-load failed: '+e.message);setProgress(0);
+    console.error('Silent load error:',e);
+    setStatus('r','Auto-load failed');setProgress(0);
   }
 }
 
-/* ── TABLE RENDER ────────────────────────────────────────── */
+/* ── TABLE RENDER ── */
 function renderTable(){
   var body=g('tbl-body');
   if(!rows.length){body.innerHTML='<tr><td colspan="14"><div class="empty-state"><div class="ic">&#128205;</div><p>No data loaded. Try adjusting the "Skip rows" setting.</p></div></td></tr>';updateSelBadge();return;}
@@ -857,10 +860,10 @@ function toggleAll(c){document.querySelectorAll('.row-chk').forEach(function(x){
 window.selAll=function(){g('check-all').checked=true;toggleAll(true);};
 window.clearSel=function(){g('check-all').checked=false;toggleAll(false);};
 
-/* ── MODAL ───────────────────────────────────────────────── */
+/* ── MODAL ── */
 window.closeModal=function(){g('inv-modal').classList.remove('open');if(editMode)window.toggleEdit();};
 
-/* ── GENERATE INVOICE ────────────────────────────────────── */
+/* ── GENERATE INVOICE ── */
 function genInvoice(){
   if(!selRows.length){toast('Select at least one row first');return;}
   var first=selRows[0];
@@ -887,3 +890,13 @@ function genInvoice(){
       +'<td>'+esc(cRaw)+'</td>'
       +'<td class="tr">'+(line?line.toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2}):'—')+'</td>'
       +'</tr>';
+  });
+  g('inv-rows').innerHTML=html;
+  g('inv-grand').textContent=grand?grand.toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2}):'0.00';
+  g('inv-modal').classList.add('open');
+}
+
+})();
+</script>
+</body>
+</html>

@@ -202,7 +202,27 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 .inv-socials{display:flex;gap:5px;}
 .sicon{width:22px;height:22px;border-radius:50%;color:#fff;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;flex-shrink:0;}
 .inv-footer-brand{font-size:var(--sz-footer);font-weight:900;color:#2d1b69;letter-spacing:1px;}
-.inv-footer-tag{display:block;font-size:9px;letter-spacing:3px;color:#c9a84c;font-weight:600;}
+.inv-grand-box {
+  border: 2px solid #d0021b;
+  border-radius: 3px;
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  margin: 12px 0 8px;
+}
+.inv-grand-label {
+  font-size: 14px;
+  font-weight: 700;
+  color: #1a1a1a;
+}
+.inv-grand-val {
+  font-size: 20px;
+  font-weight: 900;
+  color: #d0021b;
+  letter-spacing: 1px;
+}
 </style>
 </head>
 <body>
@@ -386,9 +406,13 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
           <tbody id="inv-rows"></tbody>
         </table>
         <div class="inv-total-row">
-          <div class="inv-total-box">Total : <span id="e-curr" contenteditable="false" data-ph="BDT">BDT</span><span class="total-val" id="inv-grand"></span></div>
-        </div>
-        <div class="inv-spacer"></div>
+  <div class="inv-total-box">Total : <span id="e-curr" contenteditable="false" data-ph="BDT">BDT</span><span class="total-val" id="inv-grand"></span></div>
+</div>
+<div class="inv-grand-box" id="inv-grand-box">
+  <span class="inv-grand-label">Total : <span id="e-curr2">BDT</span></span>
+  <span class="inv-grand-val" id="inv-grand2"></span>
+</div>
+<div class="inv-spacer"></div>
         <div class="inv-banking" id="inv-banking">
           <div class="banking-header">Banking Details <span class="banking-sep">|</span> <span id="e-bank" contenteditable="false" data-ph="Bank Name">Meghna Bank PLC</span></div>
           <span class="banking-line" id="e-holder" contenteditable="false" data-ph="Account Holder">JAYEDUR RAHMAN NIROB</span>
@@ -892,7 +916,10 @@ function genInvoice(){
       +'</tr>';
   });
   g('inv-rows').innerHTML=html;
-  g('inv-grand').textContent=grand?grand.toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2}):'0.00';
+  var grandStr = grand ? grand.toLocaleString('en-IN', {minimumFractionDigits:2, maximumFractionDigits:2}) : '0.00';
+g('inv-grand').textContent = grandStr;
+var g2 = g('inv-grand2'); if(g2) g2.textContent = grandStr;
+var c2 = g('e-curr2'); if(c2) c2.textContent = (g('e-curr')||{}).textContent || 'BDT';
   g('inv-modal').classList.add('open');
 }
 

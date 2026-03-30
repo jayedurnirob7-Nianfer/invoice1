@@ -354,7 +354,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
             <strong>Phone :</strong> <span id="e-phone" contenteditable="false" data-ph="Phone">01978755135</span><br>
             Whatsapp : <span id="e-wa" contenteditable="false" data-ph="WhatsApp">01978755135</span><br>
             Wechat : <span id="e-wc" contenteditable="false" data-ph="WeChat">NorthernLogistics</span><br>
-            Mail : <span id="e-mail" contenteditable="false" data-ph="Email">info@northernlogistics.com</span>
+            Mail : <span id="e-mail" contenteditable="false" data-ph="Email"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="88e1e6eee7c8e6e7fafce0edfae6e4e7efe1fbfce1ebfba6ebe7e5">[email&#160;protected]</a></span>
           </div>
         </div>
         <div class="inv-titlebar" id="e-title" contenteditable="false" data-ph="INVOICE">INVOICE</div>
@@ -425,7 +425,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 
 <div id="toast"></div>
 
-<script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 (function(){
 'use strict';
 
@@ -494,14 +494,16 @@ function loadFontSizes(){
 
 /* ── PDF FILENAME from invoice data ─────────────────────── */
 function getPdfFilename(){
-  var name=(g('inv-name')||{}).textContent||'Client';
-  var trackNo=(g('inv-tno')||{}).textContent||'NoTrack';
-  var date=(g('inv-date')||{}).textContent||new Date().toLocaleDateString('en-GB');
-  /* Sanitize: remove chars unsafe for filenames */
-  function clean(s){return s.trim().replace(/[\/\\:*?"<>|]/g,'').replace(/\s+/g,'_');}
-  /* Format date: dd-mm-yyyy → ddmmyyyy or keep as-is after cleaning */
-  var cleanDate=clean(date).replace(/[\/\-\.]/g,'');
-  return clean(name)+'_'+clean(trackNo)+'_'+cleanDate+'.pdf';
+  /* Read directly from the span text nodes — these are set by setText() */
+  var name=((g('inv-name')||{}).textContent||'Client').trim();
+  var trackNo=((g('inv-tno')||{}).textContent||'NoTrack').trim();
+  var date=((g('inv-date')||{}).textContent||new Date().toLocaleDateString('en-GB')).trim();
+  if(!name)name='Client';
+  if(!trackNo)trackNo='NoTrack';
+  if(!date)date=new Date().toLocaleDateString('en-GB');
+  /* Sanitize: remove chars unsafe for filenames, spaces → underscore */
+  function clean(s){return s.replace(/[\/\\:*?"<>|]/g,'').replace(/\s+/g,'_').replace(/_+/g,'_').replace(/^_|_$/g,'');}
+  return clean(name)+'_'+clean(trackNo)+'_'+clean(date)+'.pdf';
 }
 
 /* ── BOOT ────────────────────────────────────────────────── */
@@ -626,50 +628,52 @@ window.downloadPDF=function(){
   overlay.classList.add('show');
   btn.disabled=true;btn.textContent='Generating…';
 
+  /* Grab filename BEFORE any DOM manipulation */
+  var fname=getPdfFilename();
+
   requestAnimationFrame(function(){
     setTimeout(function(){
       var paper=g('inv-paper');
-      var origShadow=paper.style.boxShadow;
-      paper.style.boxShadow='none';
 
-      /* A4 at 2× scale: 794px wide = 210mm, so scale keeps it crisp */
-      html2canvas(paper,{
+      /* ── Clone paper into a fully isolated off-screen container ── */
+      /* This guarantees html2canvas sees exactly 794×1123 with no
+         scroll-container clipping or shadow interference.            */
+      var host=document.createElement('div');
+      host.style.cssText='position:fixed;left:-9999px;top:0;width:794px;height:1123px;overflow:hidden;z-index:-1;background:#fff;';
+      var clone=paper.cloneNode(true);
+      clone.style.cssText='width:794px;height:1123px;overflow:hidden;box-shadow:none;margin:0;position:relative;';
+      host.appendChild(clone);
+      document.body.appendChild(host);
+
+      /* Force colour fixes on the clone directly (no onclone needed) */
+      var tb=clone.querySelector('.inv-titlebar');
+      if(tb){tb.style.backgroundColor='#2d1b69';tb.style.color='#ffffff';}
+      clone.querySelectorAll('.inv-table thead th').forEach(function(th){
+        th.style.backgroundColor='#2d1b69';th.style.color='#ffffff';
+      });
+
+      html2canvas(clone,{
         scale:2,
         useCORS:true,
         allowTaint:true,
         backgroundColor:'#ffffff',
-        /* Capture EXACTLY A4 dimensions — 794 × 1123 px */
         width:794,
         height:1123,
-        windowWidth:794,
-        windowHeight:1123,
-        logging:false,
-        onclone:function(doc){
-          var tb=doc.querySelector('.inv-titlebar');
-          if(tb){tb.style.backgroundColor='#2d1b69';tb.style.color='#ffffff';}
-          doc.querySelectorAll('.inv-table thead th').forEach(function(th){
-            th.style.backgroundColor='#2d1b69';th.style.color='#ffffff';
-          });
-        }
+        logging:false
       }).then(function(canvas){
-        paper.style.boxShadow=origShadow;
+        document.body.removeChild(host);
 
         var jsPDF=window.jspdf.jsPDF;
         var pdf=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
-
-        /* Always fit entire canvas onto exactly one A4 page: 210mm × 297mm */
-        var imgData=canvas.toDataURL('image/jpeg',1.0);
-        pdf.addImage(imgData,'JPEG',0,0,210,297,undefined,'FAST');
-
-        /* ── Dynamic filename: ClientName_TrackingNo_Date.pdf ── */
-        var fname=getPdfFilename();
+        /* Fit the entire 794×1123 canvas onto exactly one 210×297mm page */
+        pdf.addImage(canvas.toDataURL('image/jpeg',1.0),'JPEG',0,0,210,297,undefined,'FAST');
         pdf.save(fname);
 
         overlay.classList.remove('show');
         btn.disabled=false;btn.textContent='⬇ Download PDF';
-        toast('PDF saved as: '+fname);
+        toast('Saved: '+fname);
       }).catch(function(err){
-        paper.style.boxShadow=origShadow;
+        if(document.body.contains(host))document.body.removeChild(host);
         overlay.classList.remove('show');
         btn.disabled=false;btn.textContent='⬇ Download PDF';
         toast('PDF failed: '+err.message,6000);
@@ -815,13 +819,3 @@ function genInvoice(){
   });
   g('inv-rows').innerHTML=html;
   setText('inv-grand',' '+(grand?grand.toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2}):'0.00'));
-  if(editMode)window.toggleEdit();
-  g('inv-modal').classList.add('open');
-}
-function closeModal(){g('inv-modal').classList.remove('open');if(editMode)window.toggleEdit();}
-window.closeModal=closeModal;
-
-})();
-</script>
-</body>
-</html>

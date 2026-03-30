@@ -176,7 +176,9 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 .inv-field{display:flex;gap:4px;font-size:var(--sz-field);align-items:baseline;}
 .inv-field strong{min-width:80px;white-space:nowrap;flex-shrink:0;}
 .inv-field .val{border-bottom:1px solid #ccc;flex:1;min-width:90px;padding-bottom:1px;}
-.inv-meta-right{text-align:right;font-size:var(--sz-field);line-height:1.9;}
+.inv-meta-right{text-align:right;font-size:var(--sz-field);line-height:1.9;display:flex;flex-direction:column;justify-content:space-between;align-items:flex-end;}
+.inv-meta-right-top{text-align:right;}
+.inv-meta-right-bottom{text-align:right;margin-top:8px;}
 .inv-meta-right .inv-field{justify-content:flex-end;}
 .inv-meta-right .inv-field .val{text-align:left;min-width:95px;}
 /* Date/Page sit at top of right column naturally; Shipping fields below with gap */
@@ -191,12 +193,11 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 .inv-table tbody td.tc{text-align:center;}
 .inv-table tbody td.tr{text-align:right;font-weight:600;}
 .inv-table tbody tr:nth-child(even){background:#fafafa;}
-/* Total row sits right below table, spacer pushes banking/footer down */
-.inv-total-row{display:flex;justify-content:flex-end;border-top:2px solid #1a1a1a;padding-top:8px;margin-top:8px;}
+/* Spacer sits between table and total — pushes total+banking+footer all down together */
+.inv-spacer{flex:1;}
+.inv-total-row{display:flex;justify-content:flex-end;border-top:2px solid #1a1a1a;padding-top:8px;margin-top:0;}
 .inv-total-box{font-size:var(--sz-total);font-weight:700;}
 .total-val{margin-left:8px;color:#d0021b;font-size:calc(var(--sz-total) + 2px);}
-/* Spacer fills remaining space to push banking + footer to bottom */
-.inv-spacer{flex:1;}
 .inv-banking{border-top:1px solid #ddd;padding-top:11px;font-size:var(--sz-banking);line-height:1;}
 .banking-header{font-weight:700;margin-bottom:7px;}
 .banking-sep{color:#999;margin:0 6px;}
@@ -367,9 +368,11 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
             <div class="inv-field" id="mf-mob"><strong>Mobile :</strong><span class="val" id="inv-mob" contenteditable="false" data-ph="Mobile"></span></div>
           </div>
           <div class="inv-meta-right">
-            <div id="mf-date">Date : <span id="inv-date" contenteditable="false" data-ph="Date"></span></div>
-            <div id="mf-page">Page : <span id="e-page" contenteditable="false" data-ph="1-1">1-1</span></div>
-            <div style="margin-top:28px;">
+            <div class="inv-meta-right-top">
+              <div id="mf-date">Date : <span id="inv-date" contenteditable="false" data-ph="Date"></span></div>
+              <div id="mf-page">Page : <span id="e-page" contenteditable="false" data-ph="1-1">1-1</span></div>
+            </div>
+            <div class="inv-meta-right-bottom">
               <div class="inv-field" id="mf-smark"><strong>Shipping Mark :</strong><span class="val" id="inv-smark" contenteditable="false" data-ph="Mark"></span></div>
               <div class="inv-field" id="mf-sno"><strong>Shipping No :</strong><span class="val" id="inv-sno" contenteditable="false" data-ph="Shipping No."></span></div>
               <div class="inv-field" id="mf-tno"><strong>Tracking No :</strong><span class="val" id="inv-tno" contenteditable="false" data-ph="Tracking No."></span></div>
@@ -388,11 +391,11 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
           </tr></thead>
           <tbody id="inv-rows"></tbody>
         </table>
+        <!-- Spacer pushes total+banking+footer all down into the lower half -->
+        <div class="inv-spacer"></div>
         <div class="inv-total-row">
           <div class="inv-total-box">Total : <span id="e-curr" contenteditable="false" data-ph="BDT">BDT</span><span class="total-val" id="inv-grand"></span></div>
         </div>
-        <!-- Spacer pushes banking + footer to bottom of fixed A4 page -->
-        <div class="inv-spacer"></div>
         <div class="inv-banking" id="inv-banking">
           <div class="banking-header">Banking Details <span class="banking-sep">|</span> <span id="e-bank" contenteditable="false" data-ph="Bank Name">Meghna Bank PLC</span></div>
           <span class="banking-line" id="e-holder" contenteditable="false" data-ph="Account Holder">JAYEDUR RAHMAN NIROB</span>
@@ -511,19 +514,25 @@ function getPdfFilename(){
 function boot(){
   loadFontSizes();
 
-  /* toggles */
-  var tBank=lsGet(LS.TOG_BANKING),tSoc=lsGet(LS.TOG_SOCIALS),tBg=lsGet(LS.TOG_BG);
-  if(tBg!==null){var cb=g('tog-bg');if(cb)cb.checked=(tBg==='1');}
-  if(tBank!==null){var cb=g('tog-banking');if(cb){cb.checked=(tBank==='1');toggleEl('inv-banking','block',cb.checked);}}
-  if(tSoc!==null){var cb=g('tog-socials');if(cb){cb.checked=(tSoc==='1');toggleEl('inv-socials','flex',cb.checked);}}
+  var tBank=lsGet(LS.TOG_BANKING),tSoc=lsGet(LS.TOG_SOCIALS);
 
-  /* bg opacity/size */
+  /* bg opacity/size — must be set BEFORE applyBgImg so it reads correct values */
   var op=lsGet(LS.BGOP)||'15',sz=lsGet(LS.BGSZ)||'cover';
   g('bg-op').value=op;g('bg-op-v').value=op;
   var szEl=g('bg-sz');if(szEl)szEl.value=sz;
 
-  /* bg image */
-  var savedBg=lsGet(LS.BG);if(savedBg)applyBgImg(savedBg,true);
+  /* bg image — applyBgImg now always shows the layer and sets toggle ON */
+  var savedBg=lsGet(LS.BG);
+  if(savedBg){
+    applyBgImg(savedBg,true);
+    /* If user had previously turned the toggle OFF, respect that */
+    var tBgSaved=lsGet(LS.TOG_BG);
+    if(tBgSaved==='0'){var l=g('inv-bg');if(l)l.style.display='none';var cb=g('tog-bg');if(cb)cb.checked=false;}
+  }
+
+  /* other toggles */
+  if(tBank!==null){var cb=g('tog-banking');if(cb){cb.checked=(tBank==='1');toggleEl('inv-banking','block',cb.checked);}}
+  if(tSoc!==null){var cb=g('tog-socials');if(cb){cb.checked=(tSoc==='1');toggleEl('inv-socials','flex',cb.checked);}}
   /* logo */
   var savedLogo=lsGet(LS.LOGO);if(savedLogo)applyLogoImg(savedLogo,true);
   /* sheet URL */
@@ -605,11 +614,15 @@ window.resetSpacing=function(){
 function applyBgImg(src,silent){
   var l=g('inv-bg');
   l.style.backgroundImage='url('+src+')';
-  l.style.backgroundSize=g('bg-sz').value;
+  l.style.backgroundSize=g('bg-sz').value||'cover';
   l.style.backgroundPosition='50% 50%';
   l.style.opacity=(parseFloat(g('bg-op').value)||15)/100;
-  var tog=g('tog-bg');l.style.display=(tog&&tog.checked)?'block':'none';
+  /* Always show the bg layer when applying — toggle just hides/shows it */
+  l.style.display='block';
   g('bg-prev').src=src;g('bg-prev').style.display='block';
+  /* Sync toggle checkbox to ON whenever an image is applied */
+  var tog=g('tog-bg');if(tog)tog.checked=true;
+  lsSet(LS.TOG_BG,'1');
   if(!silent){
     if(src.length<5000000){lsSet(LS.BG,src);lsSet(LS.BGOP,g('bg-op').value);lsSet(LS.BGSZ,g('bg-sz').value);}
     toast(src.length<5000000?'Background applied':'Applied but too large to save (>5MB)');

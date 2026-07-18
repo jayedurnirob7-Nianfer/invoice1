@@ -1,0 +1,17 @@
+{
+  "name": "Northern Invoice Generator",
+  "short_name": "Invoice Gen",
+  "description": "Progressive Web App for Northern Logistics Invoice Generation",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#1e1240",
+  "theme_color": "#1e1240",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

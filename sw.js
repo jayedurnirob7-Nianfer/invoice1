@@ -1,9 +1,9 @@
-const CACHE_NAME = 'invoice-gen-v3';
+const CACHE_NAME = 'invoice-gen-v4';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
   './manifest.json',
-  './icon.svg',
+  './icon.jpg',
   'https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap',
   'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js',
   'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'

@@ -464,6 +464,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 // ==========================================
 // CONFIGURATION: Hardcode your URLs here
 // ==========================================
+var DEFAULT_SHEET_URL = ""; // e.g. "https://docs.google.com/spreadsheets/d/1p-lhj..."
 var DEFAULT_LOGO_URL = ""; 
 var DEFAULT_BG_URL = "";
 // ==========================================
@@ -548,7 +549,7 @@ function boot(){
     var cbSoc=g('tog-socials');if(tSoc!==null&&cbSoc){cbSoc.checked=(tSoc==='1');toggleEl('inv-socials','flex',cbSoc.checked);}
     var savedLogo=lsGet(LS.LOGO) || DEFAULT_LOGO_URL;if(savedLogo)applyLogoImg(savedLogo,true);
     var skipEl=g('skip-rows');var savedSkip=lsGet(LS.SKIP);if(savedSkip!==null&&skipEl)skipEl.value=savedSkip;
-    var savedUrl=lsGet(LS.URL);
+    var savedUrl=lsGet(LS.URL) || DEFAULT_SHEET_URL;
     if(savedUrl){var suEl=g('sheet-url');if(suEl)suEl.value=savedUrl;var sbEl=g('saved-badge');if(sbEl)sbEl.classList.add('show');setStatus('y','Auto-loading...');loadSheetSilent(savedUrl);}
     var btnLoad=g('btn-load');if(btnLoad)btnLoad.addEventListener('click',loadSheet);
     var btnClear=g('btn-clear-url');if(btnClear)btnClear.addEventListener('click',function(){lsRm(LS.URL);var su=g('sheet-url');if(su)su.value='';var sb=g('saved-badge');if(sb)sb.classList.remove('show');rows=[];renderTable();toast('URL cleared');});

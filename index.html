@@ -29,7 +29,7 @@
   --badge-text: #166534;
   --table-header-bg: var(--purple);
 }
-:root[data-theme="dark"] {
+body[data-theme="dark"] {
   --ink: #f8fafc;
   --purple: #8b5cf6;
   --purple-hover: #a78bfa;
@@ -574,7 +574,7 @@ function getPdfFilename(){
 }
 
 function toggleTheme() {
-  var root = document.documentElement;
+  var root = document.body;
   var btn = g('theme-btn');
   if(root.getAttribute('data-theme') === 'dark') {
     root.removeAttribute('data-theme');
@@ -591,7 +591,7 @@ function boot(){
   try{
     var savedTheme = lsGet(LS.THEME);
     if(savedTheme === 'dark') {
-      document.documentElement.setAttribute('data-theme', 'dark');
+      document.body.setAttribute('data-theme', 'dark');
       var tbtn = g('theme-btn');
       if(tbtn) tbtn.innerHTML = '&#x2600;&#xFE0F; Light Mode';
     }
